@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styleadmin.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+</head>
+<body>
+
+    <div class="rectangle">
+        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+        <img src="Fire Dep Logo.jpg">
+        
+        <!-- Dropdown for the icon -->
+        <!-- Dropdown for the icon -->
+<div class="dropdown">
+    <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
+    <div class="dropdown-content">
+        <a href="Table.html">Crew</a>
+        <a href="#report">Report</a>
+        <a href="#logout">Logout</a>
+    </div>
+</div>
+        
+        <span>ADMIN</span>
+
+        <div class="trapezoid" id="trapezoid">UNITS</div>
+        <div class="table-container" id="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Crew</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody> 
+                    <tr>
+                        <td>1</td>
+                        <td>Dela Cruz, Juan</td>
+                        <td>Active</td>
+                        <td>Alpha</td>
+                        <td>Base</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Verstappen, Max </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Leclerc, Charles</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Sung Jin Woo</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d8850.69713476374!2d120.26082134800524!3d14.849273963720886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sph!4v1746511157158!5m2!1sen!2sph" width="1705" height="828" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <script>
+      const trapezoid = document.getElementById('trapezoid');
+      const tableContainer = document.getElementById('table-container');
+
+      trapezoid.addEventListener('click', () => {
+          trapezoid.classList.toggle('clicked'); // Add or remove the 'clicked' class
+
+          if (tableContainer.classList.contains('visible')) {
+              tableContainer.classList.remove('visible');
+              tableContainer.classList.add('hidden'); // Move the table back down
+          } else {
+              tableContainer.classList.remove('hidden');
+              tableContainer.classList.add('visible'); // Move the table up
+          }
+      });
+    </script>
+</body>
+</html>

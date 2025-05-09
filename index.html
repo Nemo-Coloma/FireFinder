@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="rectangle">
+        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+        <img src="Fire Dep Logo.jpg">
+        <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px;  cursor: pointer;">
+        
+        <span>CIVILIAN</span>
+
+        <div class="login-modal" id="login-modal">
+            <div class="login-content">
+                <span class="close-btn" id="close-btn">&times;</span>
+                <h2>Log In</h2>
+                <form>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <button type="submit">Log In</button>
+                    <div style="margin: 10px 0; font-size: 14px; color: #838383;">OR</div>
+                    <div style="margin-top: 15px; font-size: 14px;">
+                        <a href="#" class="create-account-link">Create an Account</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="create-account-modal" id="create-account-modal">
+            <div class="create-account-content">
+                <span class="close-btn" id="create-close-btn">&times;</span>
+                <h2>Create Account</h2>
+                <form>
+                    <input type="email" id="create-email" name="email" placeholder="Enter your email" required>
+                    <input type="password" id="create-password" name="password" placeholder="Enter your password" required>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                    <button type="submit" id="create-account-btn">Create Account</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="trapezoid" id="trapezoid">UNITS</div>
+        <div class="table-container" id="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Crew</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody> 
+                    <tr>
+                        <td>1</td>
+                        <td>Dela Cruz, Juan</td>
+                        <td>Active</td>
+                        <td>Alpha</td>
+                        <td>Base</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Verstappen, Max </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Leclerc, Charles</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Sung Jin Woo</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d8850.69713476374!2d120.26082134800524!3d14.849273963720886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sph!4v1746511157158!5m2!1sen!2sph" width="1705" height="828" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <script>
+      const trapezoid = document.getElementById('trapezoid');
+const tableContainer = document.getElementById('table-container');
+
+trapezoid.addEventListener('click', () => {
+    trapezoid.classList.toggle('clicked'); // Add or remove the 'clicked' class
+
+    if (tableContainer.classList.contains('visible')) {
+        tableContainer.classList.remove('visible');
+        tableContainer.classList.add('hidden'); // Move the table back down
+    } else {
+        tableContainer.classList.remove('hidden');
+        tableContainer.classList.add('visible'); // Move the table up
+    }
+});
+    // Optional: Close the dropdown if clicked outside
+    document.addEventListener('click', (event) => {
+        if (!icon.contains(event.target) && !dropdownMenu.contains(event.target)) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+    const icon = document.getElementById('icon');
+const loginModal = document.getElementById('login-modal');
+const loginContent = document.querySelector('.login-content');
+
+// Show the login modal when the icon is clicked
+icon.addEventListener('click', () => {
+    loginModal.style.display = 'flex'; // Show the modal
+});
+
+// Hide the login modal when clicking outside the login content
+loginModal.addEventListener('click', (event) => {
+    if (!loginContent.contains(event.target)) {
+        loginModal.style.display = 'none'; // Hide the modal
+    }
+});
+const createAccountLink = document.querySelector('.create-account-link');
+const createAccountModal = document.getElementById('create-account-modal');
+const createCloseBtn = document.getElementById('create-close-btn');
+
+// Show the create account modal when the link is clicked
+createAccountLink.addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent default link behavior
+    createAccountModal.style.display = 'flex'; // Show the modal
+    loginModal.style.display = 'none'; // Hide the login modal
+});
+
+// Hide the create account modal when clicking the close button
+createCloseBtn.addEventListener('click', () => {
+    createAccountModal.style.display = 'none'; // Hide the modal
+});
+
+// Hide the create account modal when clicking outside the content
+createAccountModal.addEventListener('click', (event) => {
+    const createAccountContent = document.querySelector('.create-account-content');
+    if (!createAccountContent.contains(event.target)) {
+        createAccountModal.style.display = 'none'; // Hide the modal
+    }
+});
+
+
+
+    function initMap() {
+        const mapOptions = {
+            center: { lat: 14.8493, lng: 120.2608 }, // Set your desired coordinates
+            zoom: 12,
+            styles: [
+                {
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#1d2c4d" }]
+                },
+                {
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#8ec3b9" }]
+                },
+                {
+                    "elementType": "labels.text.stroke",
+                    "stylers": [{ "color": "#1a3646" }]
+                },
+                {
+                    "featureType": "administrative",
+                    "elementType": "geometry",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "administrative.country",
+                    "elementType": "geometry.stroke",
+                    "stylers": [{ "color": "#4b6878" }]
+                },
+                {
+                    "featureType": "administrative.land_parcel",
+                    "elementType": "labels",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "administrative.land_parcel",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#64779e" }]
+                },
+                {
+                    "featureType": "administrative.province",
+                    "elementType": "geometry.stroke",
+                    "stylers": [{ "color": "#4b6878" }]
+                },
+                {
+                    "featureType": "landscape.man_made",
+                    "elementType": "geometry.stroke",
+                    "stylers": [{ "color": "#334e87" }]
+                },
+                {
+                    "featureType": "landscape.natural",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#023e58" }]
+                },
+                {
+                    "featureType": "poi",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#283d6a" }]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#6f9ba5" }]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [{ "color": "#1d2c4d" }]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "geometry.fill",
+                    "stylers": [{ "color": "#023e58" }]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#3C7680" }]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#304a7d" }]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "labels.icon",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#98a5be" }]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [{ "color": "#1d2c4d" }]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#2c6675" }]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "geometry.stroke",
+                    "stylers": [{ "color": "#255763" }]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#b0d5ce" }]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [{ "color": "#023e58" }]
+                },
+                {
+                    "featureType": "road.local",
+                    "elementType": "labels",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "transit",
+                    "stylers": [{ "visibility": "off" }]
+                },
+                {
+                    "featureType": "transit",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#98a5be" }]
+                },
+                {
+                    "featureType": "transit",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [{ "color": "#1d2c4d" }]
+                },
+                {
+                    "featureType": "transit.line",
+                    "elementType": "geometry.fill",
+                    "stylers": [{ "color": "#283d6a" }]
+                },
+                {
+                    "featureType": "transit.station",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#3a4762" }]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": [{ "color": "#0e1626" }]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{ "color": "#4e6d70" }]
+                }
+            ]
+        };
+
+        const map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    }
+
+    // Initialize the map when the page loads
+    window.onload = initMap;
+
+
+    
+        
+    </script>
+</body>
+</html>

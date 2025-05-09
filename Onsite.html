@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>On-Site Members</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      width: 220px;
+      background-color: #2c3e50;
+      color: #fff;
+      position: fixed;
+      height: 100%;
+      padding: 20px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+
+    .sidebar a {
+      color: #ecf0f1;
+      text-decoration: none;
+      padding: 10px 0;
+      display: block;
+    }
+
+    .sidebar a:hover {
+      background-color: #34495e;
+      padding-left: 10px;
+    }
+
+    .main-content {
+      margin-left: 220px;
+      padding: 20px;
+      flex: 1;
+    }
+
+    .toggle-btn {
+      display: none;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #2c3e50;
+      color: white;
+    }
+
+    select {
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 1000;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 70px 20px 20px;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1100;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar" id="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="onsite.html">On-Site</a>
+    <a href="#">Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h2>On-Site Members</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Position</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="onsiteTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase & Script -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+    import {
+      getFirestore, collection, getDocs, doc, getDoc, updateDoc
+    } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+      authDomain: "firefinder-d5c0a.firebaseapp.com",
+      projectId: "firefinder-d5c0a",
+      storageBucket: "firefinder-d5c0a.appspot.com",
+      messagingSenderId: "221428549294",
+      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const tableBody = document.getElementById('onsiteTableBody');
+
+    async function loadOnSiteMembers() {
+      tableBody.innerHTML = '';
+      const dashboardSnapshot = await getDocs(collection(db, 'Dashboard'));
+
+      for (const docSnap of dashboardSnapshot.docs) {
+        const data = docSnap.data();
+        const memberId = docSnap.id;
+
+        const recordSnap = await getDoc(doc(db, 'MemberRecords', memberId));
+        const status = recordSnap.exists() ? recordSnap.data().status : "unknown";
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.firstName}</td>
+          <td>${data.lastName}</td>
+          <td>${data.email}</td>
+          <td>${data.position}</td>
+          <td>
+            <select onchange="changeStatus('${memberId}', this)">
+              <option value="active" ${status === "active" ? "selected" : ""}>Active</option>
+              <option value="offline" ${status === "offline" ? "selected" : ""}>Offline</option>
+            </select>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      }
+    }
+
+    window.changeStatus = async function(id, selectElement) {
+      const newStatus = selectElement.value;
+      try {
+        await updateDoc(doc(db, 'MemberRecords', id), { status: newStatus });
+        alert(`Status updated to ${newStatus}`);
+      } catch (error) {
+        alert('Failed to update status: ' + error.message);
+      }
+    };
+
+    loadOnSiteMembers();
+  </script>
+
+  <!-- Sidebar Toggle -->
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+  
+    }
+  
+  
+  
+  </script>
+
+
+</body>
+</html>

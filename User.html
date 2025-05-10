@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Location Picker with Route</title>
   <meta charset="UTF-8" />
+  <title>Location Picker with Route</title>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <!-- Leaflet CSS/JS -->
+
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
   <!-- Routing and Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
@@ -16,78 +19,32 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f5f6fa;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f6fa; }
+    .container { max-width: 1000px; margin: auto; }
     .input-section {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: white; padding: 20px; border-radius: 10px;
+      margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .map-container {
-      position: relative;
-      height: 500px;
-      display: flex;
-    }
-    #map {
-      flex: 1;
-      height: 100%;
-      border-radius: 10px;
-    }
+    .map-container { position: relative; height: 30rem; display: flex; }
+    #map { flex: 1; height: 100%; border-radius: 10px; }
     .directions-panel {
-      width: 300px;
-      background: #fff;
-      border-left: 1px solid #ccc;
-      overflow-y: auto;
-      display: none;
-      padding: 10px;
+      width: 300px; background: #fff; border-left: 1px solid #ccc;
+      overflow-y: auto; display: none; padding: 10px;
     }
     .icon-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 999;
-      background: #273c75;
-      color: white;
-      padding: 10px;
-      font-size: 18px;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: absolute; top: 10px; right: 10px; z-index: 999;
+      background: #273c75; color: white; padding: 10px;
+      font-size: 18px; border: none; border-radius: 50%;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    .icon-button:hover {
-      background-color: #40739e;
-    }
+    .icon-button:hover { background-color: #40739e; }
     input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      width: 100%; padding: 10px; margin-top: 10px;
+      border-radius: 6px; border: 1px solid #ccc;
     }
-    button {
-      background-color: #273c75;
-      color: white;
-      border: none;
-      font-size: 16px;
-    }
-    button:disabled {
-      background-color: #ccc;
-    }
-    .status {
-      margin-top: 10px;
-      font-size: 14px;
-    }
+    button { background-color: #273c75; color: white; border: none; font-size: 16px; }
+    button:disabled { background-color: #ccc; }
+    .status { margin-top: 10px; font-size: 14px; }
     .success { color: green; }
     .error { color: red; }
     .info { color: #333; }
@@ -99,7 +56,7 @@
       <h2>Select & Save Your Location</h2>
       <input type="text" id="locationName" placeholder="Enter a name for the location">
       <button id="saveButton" onclick="saveLocation()" disabled>Save Location</button>
-      <div id="status" class="status info">Click on the map to select a location.</div>
+      <div id="status" class="status info" aria-live="polite">Click on the map to select a location.</div>
     </div>
 
     <div class="map-container">
@@ -110,7 +67,7 @@
   </div>
 
   <script>
-    // Firebase config
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -120,20 +77,16 @@
       messagingSenderId: "221428549294",
       appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
     };
-
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Default map view set to Olongapo City
-    const map = L.map('map').setView([14.8292, 120.2820], 13); // Olongapo City Coordinates
+    // Map setup
+    const map = L.map('map').setView([14.8292, 120.2820], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Gordon College coordinates (fixed destination)
-    const gordonCollegeLatLng = L.latLng(14.8363, 120.2831);
-
-    // Add marker for Gordon College on the map
+    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
     L.marker(gordonCollegeLatLng).addTo(map)
       .bindPopup('Gordon College')
       .openPopup();
@@ -141,26 +94,28 @@
     let selectedLocation = null;
     let marker = null;
     let routeControl = null;
-
+    let dispatcherMarker = null; // Track dispatcher marker
     const saveButton = document.getElementById('saveButton');
     const statusElement = document.getElementById('status');
 
     map.on('click', function(e) {
       selectedLocation = e.latlng;
-
       if (marker) map.removeLayer(marker);
       marker = L.marker(selectedLocation).addTo(map)
                .bindPopup("Selected Location")
                .openPopup();
-
       saveButton.disabled = false;
       updateStatus("Location selected. Click 'Save Location' to save.", "success");
     });
 
     function saveLocation() {
-      if (!selectedLocation) return updateStatus("No location selected.", "error");
+      if (!selectedLocation) {
+        updateStatus("No location selected.", "error");
+        return;
+      }
 
-      const name = document.getElementById("locationName").value || "Unnamed Location";
+      const nameInput = document.getElementById("locationName").value.trim();
+      const name = nameInput || "Unnamed Location";
       const locationData = {
         name: name,
         latitude: selectedLocation.lat,
@@ -176,50 +131,73 @@
         document.getElementById("inputForm").style.display = "none";
         showRouteTo(selectedLocation.lat, selectedLocation.lng);
       }).catch(error => {
-        console.error(error);
-        updateStatus("Failed to save location.", "error");
+        console.error("Error saving location: ", error);
+        updateStatus(`Failed to save location: ${error.message}`, "error");
         saveButton.disabled = false;
       });
     }
 
-    function showRouteTo(lat, lng) {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported.");
+  function showRouteTo(lat, lng) {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const { latitude, longitude, accuracy } = position.coords;
+
+      // Ignore location updates with low accuracy
+      if (accuracy > 50) { // Set a threshold for acceptable accuracy (e.g., 50 meters)
+        alert("Location accuracy is too low. Please try again.");
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(position => {
-        const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
-        const destination = gordonCollegeLatLng;  // Fixed destination (Gordon College)
+      const userLatLng = L.latLng(latitude, longitude);
+      const destination = L.latLng(lat, lng);
 
-        console.log("User's Location: ", userLatLng); // Debugging: log the user's location
-        console.log("Destination Location: ", destination); // Debugging: log the destination
+      console.log("User's Location:", userLatLng);
+      console.log("Accuracy (meters):", accuracy);
 
-        if (routeControl) {
-          map.removeControl(routeControl);
+      // Add a circle to represent the reduced accuracy radius
+      L.circle(userLatLng, {
+        radius: Math.min(accuracy, 50), // Limit the radius to a maximum of 50 meters
+        color: 'blue',
+        fillOpacity: 0.2
+      }).addTo(map);
+
+      if (routeControl) {
+        map.removeControl(routeControl);
+      }
+
+      // Add routing control
+      routeControl = L.Routing.control({
+        waypoints: [userLatLng, destination],
+        routeWhileDragging: false,
+        createMarker: () => null,
+        show: false,
+        geocoder: L.Control.Geocoder.nominatim(),
+        itinerary: {
+          container: document.getElementById('directionsPanel')
         }
+      }).addTo(map);
 
-        routeControl = L.Routing.control({
-          waypoints: [userLatLng, destination],
-          routeWhileDragging: false,
-          createMarker: () => null,
-          show: false,
-        }).addTo(map);
+      document.getElementById("directionsPanel").style.display = "block";
 
-        routeControl.on('routesfound', function(e) {
-          const panel = document.getElementById("directionsPanel");
-          const instructions = e.routes[0].instructions || [];
-
-          panel.innerHTML = "<h4>Directions</h4><ol>" +
-            instructions.map(step => `<li>${step.text}</li>`).join('') +
-            "</ol>";
-        });
-
-      }, (error) => {
-        alert("Could not get your location. Please ensure location services are enabled.");
-        console.error(error);
-      });
+      // Display accuracy feedback
+      updateStatus(`Your location is accurate within ${Math.round(accuracy)} meters.`, "info");
+    },
+    error => {
+      console.error("Error getting user's location:", error);
+      alert("Could not get your location. Please ensure location services are enabled and try again.");
+    },
+    {
+      enableHighAccuracy: true, // Request high accuracy
+      timeout: 10000, // Timeout after 10 seconds
+      maximumAge: 0 // Do not use cached location
     }
+  );
+}
 
     function toggleDirections() {
       const panel = document.getElementById("directionsPanel");
@@ -233,7 +211,7 @@
       }
     }
 
-    function updateStatus(msg, type = 'info') {
+    function updateStatus(msg = '', type = 'info') {
       statusElement.textContent = msg;
       statusElement.className = 'status ' + type;
     }

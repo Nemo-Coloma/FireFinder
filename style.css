@@ -21,6 +21,7 @@ body {
     position: absolute; /* Position the logo absolutely */
     left: 40px; /* Add space from the left edge */
     border-radius: 50%;
+    
 }
 .rectangle img:nth-child(2) {
     margin-left: 75px; /* Add space between the two logos */
@@ -184,26 +185,32 @@ margin-bottom: 20px;
 }
 
     .map-overlay-button {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1;
-      background-color: #851212;
-      color: white;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
+    height: 90px;
+    position: absolute;
+    bottom: 30px; /* Adjust the distance from the bottom */
+    right: 30px; /* Adjust the distance from the right */
+    z-index: 1000; /* Ensure it appears above the map */
+    padding: 5px 10px;
+    background-color: #f40606;
+    color: white;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0.8, 0.8);
+    font-weight: 1000;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
 
-    .map-overlay-button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
+.map-overlay-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.map-overlay-button:hover {
+    background-color: #b80909; /* Slightly darker red on hover */
+    transform: scale(1.1); /* Slightly enlarge the button */
+    box-shadow: 0 12px 12px rgba(0, 0, 0, 0.9); /* Enhance shadow on hover */
+}
     .status {
       position: absolute;
       bottom: 10px;
@@ -228,3 +235,76 @@ margin-bottom: 20px;
     .status.info {
       color: blue;
     }
+
+
+
+    @media (max-width: 768px) {
+    /* Adjust the rectangle height and font size */
+    .rectangle {
+        height: 50px;
+        font-size: 20px;
+        padding-top: 10px;
+    }
+
+    .rectangle img {
+        height: 25px; /* Reduce logo size */
+        left: 10px; /* Adjust spacing */
+    }
+
+    .rectangle img:nth-child(2) {
+        margin-left: 30px; /* Adjust spacing between logos */
+    }
+
+    .rectangle img:nth-child(3) {
+        margin-left: auto; /* Align to the right */
+        right: 10px;
+        position: absolute;
+        height: 5px;
+        top: -2px;
+    }
+
+    /* Adjust modal sizes */
+    .login-content,
+    .create-account-content {
+        width: 70%; /* Use most of the screen width */
+        height: auto; /* Allow height to adjust dynamically */
+        padding: 15px;
+    }
+
+    .login-content input,
+    .create-account-content input {
+        width: 70%; /* Full width for inputs */
+        padding: 10px;
+    }
+
+    .login-content button,
+    .create-account-content button {
+        width: 90%; /* Full width for buttons */
+        padding: 10px;
+    }
+
+    /* Adjust map container */
+    .map-container {
+        height: calc(100vh - 50px); /* Adjust height for smaller rectangle */
+    }
+
+    #map {
+        border-radius: 5px; /* Reduce border radius */
+    }
+
+    /* Adjust map overlay button */
+    .map-overlay-button {
+        height: 70px;
+        bottom: 20px;
+        right: 20px;
+        font-size: 12px;
+        padding: 5px 8px;
+        border-radius: 110px;
+    }
+
+    /* Adjust status message */
+    .status {
+        font-size: 12px;
+        padding: 8px;
+    }
+}

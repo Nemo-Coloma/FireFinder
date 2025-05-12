@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Location Picker with Route</title>
+  <title>Location Picker with Routing</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
   <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
@@ -54,8 +55,8 @@
     <div class="input-section" id="inputForm">
       <h2>Select & Save Your Location</h2>
       <input type="text" id="locationName" placeholder="Enter a name for the location">
-      <button id="saveButton" onclick="saveLocation(event)" disabled>Save Location</button>
-      <div id="status" class="status info" aria-live="polite">Click on the map to select a location.</div>
+      <button id="saveButton" disabled>Save Location</button>
+      <div id="status" class="status info">Click on the map to select a location.</div>
     </div>
 
     <div class="map-container">
@@ -66,7 +67,7 @@
   </div>
 
   <script>
-    // Firebase config
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -79,7 +80,10 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const dispatcherLatLng = L.latLng(14.8315, 120.2826); // Replace with actual dispatcher coords
+    
+    // Dispatcher location: Gordon College
+    const dispatcherLatLng = L.latLng(14.8292, 120.2820);
+
 
     const map = L.map('map').setView(dispatcherLatLng, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -89,10 +93,11 @@
     let selectedLocation = null;
     let marker = null;
     let routeControl = null;
+
     const saveButton = document.getElementById('saveButton');
     const statusElement = document.getElementById('status');
 
-    // User clicks on map
+    // When the user clicks on the map
     map.on('click', function(e) {
       selectedLocation = e.latlng;
       if (marker) map.removeLayer(marker);
@@ -103,9 +108,8 @@
       updateStatus("Location selected. Click 'Save Location' to save.", "success");
     });
 
-    function saveLocation(event) {
-      event.preventDefault(); // Prevent form submission
-
+    // Save button action
+    saveButton.addEventListener("click", () => {
       if (!selectedLocation) {
         updateStatus("No location selected.", "error");
         return;
@@ -113,6 +117,7 @@
 
       const nameInput = document.getElementById("locationName").value.trim();
       const name = nameInput || "Unnamed Location";
+
       const locationData = {
         name: name,
         latitude: selectedLocation.lat,
@@ -126,26 +131,27 @@
       database.ref("Locations").push(locationData).then(() => {
         updateStatus("Location saved successfully!", "success");
         document.getElementById("inputForm").style.display = "none";
-        showRouteTo(selectedLocation.lat, selectedLocation.lng);
+        drawRouteToUser(selectedLocation);
       }).catch(error => {
         console.error("Error saving location: ", error);
-        updateStatus(`Failed to save location: ${error.message}`, "error");
+        updateStatus("Error saving location.", "error");
         saveButton.disabled = false;
       });
-    }
+    });
 
-    function showRouteTo(lat, lng) {
-      const destination = L.latLng(lat, lng);
-
+    function drawRouteToUser(userLatLng) {
       if (routeControl) {
         map.removeControl(routeControl);
       }
 
       routeControl = L.Routing.control({
-        waypoints: [dispatcherLatLng, destination],
-        routeWhileDragging: true,
+        waypoints: [dispatcherLatLng, userLatLng],
+        routeWhileDragging: false,
         geocoder: L.Control.Geocoder.nominatim(),
-        createMarker: function() { return null; },
+        show: false,
+        createMarker: function(i, wp) {
+          return L.marker(wp.latLng, { draggable: false });
+        },
         itinerary: {
           container: document.getElementById('directionsPanel')
         }

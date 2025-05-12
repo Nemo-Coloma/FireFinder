@@ -101,6 +101,7 @@
       updateStatus("Saving location to Firebase...", "info");
       saveButton.disabled = true;
 
+      // Save location to Firebase
       database.ref("Locations").push(locationData).then(() => {
         updateStatus(`Location saved and route to "${name}" is being shown.`, "success");
 

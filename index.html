@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style (1).css">
+    <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIVILIAN</title>
 
@@ -23,8 +22,8 @@
 </head>
 <body>
  <div class="rectangle">
-        <img src="GC Logo (1).png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
-        <img src="Fire Dep Logo (1).jpg">
+        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+        <img src="Fire Dep Logo.jpg">
         <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px;  cursor: pointer;">
         
         <span>CIVILIAN</span>
@@ -62,7 +61,7 @@
     <!-- Map Container -->
     <div class="map-container">
         <!-- Save Location Button -->
-        <button id="saveButton" class="map-overlay-button" disabled>Pin Location</button>
+        <button id="saveButton" class="map-overlay-button" disabled>CALL FDP</button>
 
         <!-- Map -->
         <div id="map"></div>
@@ -158,7 +157,7 @@ createAccountModal.addEventListener('click', (event) => {
       .openPopup();
 
     saveButton.disabled = false; // Enable the button
-    updateStatus("Location selected. Click 'Save Location' to save.", "info");
+    updateStatus("", "");
 
     // Add routing from Gordon College to the selected location
     addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
@@ -171,7 +170,6 @@ createAccountModal.addEventListener('click', (event) => {
     }
   });
 
-  // Save Location
   function saveLocation() {
     if (!selectedLocation) {
       updateStatus("No location selected.", "error");
@@ -187,7 +185,8 @@ createAccountModal.addEventListener('click', (event) => {
     saveButton.disabled = true; // Disable the button after saving
     updateStatus("Saving location...", "info");
 
-    database.ref("Locations").push(locationData).then(() => {
+    // Use .set() to save to a fixed node 'currentLocation'
+    database.ref("currentLocation").set(locationData).then(() => {
       updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
     }).catch(error => {
       console.error("Error saving location: ", error);
@@ -196,7 +195,7 @@ createAccountModal.addEventListener('click', (event) => {
     });
   }
 
-  // Add Routing Functionality
+    // Add Routing Functionality
   function addRouting(startLat, startLng, endLat, endLng) {
     const startPoint = L.latLng(startLat, startLng);
     const endPoint = L.latLng(endLat, endLng);
@@ -218,15 +217,15 @@ createAccountModal.addEventListener('click', (event) => {
           return L.marker(waypoint.latLng).bindPopup("End: Selected Location");
         }
         return null;
-      }
+      },
+      show: false // This option hides the directions panel
     }).addTo(map);
   }
-
   // Update Status
   function updateStatus(msg = '', type = 'info') {
     statusElement.textContent = msg;
     statusElement.className = 'status ' + type;
   }
-</script>
+    </script>
 </body>
 </html>

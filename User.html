@@ -165,10 +165,10 @@
           // Add routing control
           routeControl = L.Routing.control({
             waypoints: [userLatLng, destination],
-            routeWhileDragging: false,
-            createMarker: () => null,
-            show: false,
+            routeWhileDragging: true,
+            show: true,
             geocoder: L.Control.Geocoder.nominatim(),
+            createMarker: function() { return null; },  // Disable marker creation
             itinerary: {
               container: document.getElementById('directionsPanel')
             }

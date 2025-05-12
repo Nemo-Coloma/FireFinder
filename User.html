@@ -14,6 +14,8 @@
 
   <!-- Leaflet Routing Machine -->
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f6fa; }
@@ -64,7 +66,7 @@
   </div>
 
   <script>
-    // Initialize Firebase
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -77,7 +79,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Map setup
+    // Initialize map
     const map = L.map('map').setView([14.832005, 120.282648], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -89,6 +91,7 @@
     const saveButton = document.getElementById('saveButton');
     const statusElement = document.getElementById('status');
 
+    // Handle map click to select location
     map.on('click', function(e) {
       selectedLocation = e.latlng;
       if (marker) map.removeLayer(marker);
@@ -99,6 +102,7 @@
       updateStatus("Location selected. Click 'Save Location' to save.", "success");
     });
 
+    // Save location to Firebase
     function saveLocation() {
       if (!selectedLocation) {
         updateStatus("No location selected.", "error");
@@ -120,7 +124,7 @@
       database.ref("Locations").push(locationData).then(() => {
         updateStatus("Location saved successfully!", "success");
         document.getElementById("inputForm").style.display = "none";
-        showRouteTo(selectedLocation.lat, selectedLocation.lng);
+        getUserLocation(selectedLocation);
       }).catch(error => {
         console.error("Error saving location: ", error);
         updateStatus(`Failed to save location: ${error.message}`, "error");
@@ -128,54 +132,30 @@
       });
     }
 
-    // Add routing functionality
-function addRouting(startLat, startLng, endLat, endLng) {
-  const startPoint = L.latLng(startLat, startLng);
-  const endPoint = L.latLng(endLat, endLng);
+    // Get user's current location and route to destination
+    function getUserLocation(destinationLatLng) {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+      }
 
-  // Add a routing control to the map
-  L.Routing.control({
-    waypoints: [startPoint, endPoint],
-    routeWhileDragging: true,
-    show: true,
-    createMarker: function(i, waypoint, n) {
-      return L.marker(waypoint.latLng, {
-        draggable: true
-      });
-    }
-  }).addTo(map);
-}
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+          const accuracy = position.coords.accuracy;
 
-// Example usage: Add a route from Gordon College to a sample destination
-const sampleDestinationLatLng = L.latLng(14.8292, 120.2820);
-addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, sampleDestinationLatLng.lat, sampleDestinationLatLng.lng);
-
-          // Add a circle to represent the reduced accuracy radius
           L.circle(userLatLng, {
-            radius: Math.min(accuracy, 50), // Limit the radius to a maximum of 50 meters
+            radius: Math.min(accuracy, 50),
             color: 'blue',
             fillOpacity: 0.2
           }).addTo(map);
 
-          if (routeControl) {
-            map.removeControl(routeControl);
-          }
+          // Add routing
+          addRouting(userLatLng, destinationLatLng, {
+            showDirections: true,
+            suppressMarkers: true
+          });
 
-          // Add routing control
-          routeControl = L.Routing.control({
-            waypoints: [userLatLng, destination],
-            routeWhileDragging: true,
-            show: true,
-            geocoder: L.Control.Geocoder.nominatim(),
-            createMarker: function() { return null; },  // Disable marker creation
-            itinerary: {
-              container: document.getElementById('directionsPanel')
-            }
-          }).addTo(map);
-
-          document.getElementById("directionsPanel").style.display = "block";
-
-          // Display accuracy feedback
           updateStatus(`Your location is accurate within ${Math.round(accuracy)} meters.`, "info");
         },
         error => {
@@ -183,11 +163,33 @@ addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, sampleDestinationLa
           alert("Could not get your location. Please ensure location services are enabled and try again.");
         },
         {
-          enableHighAccuracy: true, // Request high accuracy
-          timeout: 10000, // Timeout after 10 seconds
-          maximumAge: 0 // Do not use cached location
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
+    }
+
+    // Reusable routing function
+    function addRouting(startLatLng, endLatLng, options = {}) {
+      if (routeControl) {
+        map.removeControl(routeControl);
+      }
+
+      routeControl = L.Routing.control({
+        waypoints: [startLatLng, endLatLng],
+        routeWhileDragging: true,
+        show: true,
+        geocoder: L.Control.Geocoder.nominatim(),
+        createMarker: options.suppressMarkers ? () => null : undefined,
+        itinerary: options.showDirections ? {
+          container: document.getElementById('directionsPanel')
+        } : undefined
+      }).addTo(map);
+
+      if (options.showDirections) {
+        document.getElementById("directionsPanel").style.display = "block";
+      }
     }
 
     function toggleDirections() {

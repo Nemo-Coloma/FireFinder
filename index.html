@@ -3,7 +3,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style (1).css">
+    <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIVILIAN</title>
 
@@ -126,7 +126,7 @@ createAccountModal.addEventListener('click', (event) => {
     const database = firebase.database();
 
     // Map Setup
-    const map = L.map('map').setView([14.8292, 120.2820], 13);
+    const map = L.map('map').setView([14.8292, 120.2820], 14.5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
@@ -160,41 +160,51 @@ createAccountModal.addEventListener('click', (event) => {
     });
 
     // Save Location
-   function saveLocation() {
-  if (!selectedLocation) {
-    updateStatus("No location selected.", "error");
-    return;
-  }
+    function saveLocation() {
+      if (!selectedLocation) {
+        updateStatus("No location selected.", "error");
+        return;
+      }
 
-  const locationData = {
-    latitude: selectedLocation.lat,
-    longitude: selectedLocation.lng,
-    timestamp: Date.now()
-  };
+      const locationData = {
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        timestamp: Date.now()
+      };
 
-  saveButton.disabled = true; // Disable the button after saving
-  updateStatus("Saving location...", "info");
+      saveButton.disabled = true; // Disable the button after saving
+      updateStatus("Saving location...", "info");
 
-  database.ref("Locations").push(locationData).then(() => {
-    updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
-    
-    // Redirect to user.html after successful save
-    setTimeout(() => {
-      window.location.href = "User.html";
-    }, 1500); // Optional delay to show the status message
-  }).catch(error => {
-    console.error("Error saving location: ", error);
-    updateStatus(`Failed to save location: ${error.message}`, "error");
-    saveButton.disabled = false; // Re-enable the button if saving fails
-  });
-}
-
+      database.ref("Locations").push(locationData).then(() => {
+        updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
+      }).catch(error => {
+        console.error("Error saving location: ", error);
+        updateStatus(`Failed to save location: ${error.message}`, "error");
+        saveButton.disabled = false; // Re-enable the button if saving fails
+      });
+    }
 
     // Update Status
     function updateStatus(msg = '', type = 'info') {
       statusElement.textContent = msg;
       statusElement.className = 'status ' + type;
     }
+    const loginForm = document.querySelector('#login-modal form');
+
+// Handle login form submission
+loginForm.addEventListener('submit', (event) => {
+    event.preventDefault(); // Prevent the default form submission behavior
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Check if the credentials match the admin's
+    if (email === 'adminfdp@gmail.com' && password === '123456') {
+        window.location.href = 'admin.html'; // Redirect to admin.html
+    } else {
+        updateStatus('Invalid email or password.', 'error'); // Show error message
+    }
+});
 
     </script>
 </body>

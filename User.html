@@ -14,6 +14,8 @@
 
   <!-- Leaflet Routing Machine -->
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+  <!-- Leaflet Control Geocoder (for routing panel) -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
@@ -66,7 +68,7 @@
   </div>
 
   <script>
-    // Firebase config
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -90,8 +92,8 @@
     let routeControl = null;
     const saveButton = document.getElementById('saveButton');
     const statusElement = document.getElementById('status');
+    const dispatcherLatLng = L.latLng(14.8292, 120.2820); // Dispatcher fixed location (e.g., Gordon College)
 
-    // Handle map click to select location
     map.on('click', function(e) {
       selectedLocation = e.latlng;
       if (marker) map.removeLayer(marker);
@@ -102,7 +104,6 @@
       updateStatus("Location selected. Click 'Save Location' to save.", "success");
     });
 
-    // Save location to Firebase
     function saveLocation() {
       if (!selectedLocation) {
         updateStatus("No location selected.", "error");
@@ -124,7 +125,10 @@
       database.ref("Locations").push(locationData).then(() => {
         updateStatus("Location saved successfully!", "success");
         document.getElementById("inputForm").style.display = "none";
-        getUserLocation(selectedLocation);
+
+        // Automatically show route from dispatcher to user
+        addRouting(dispatcherLatLng, selectedLocation);
+
       }).catch(error => {
         console.error("Error saving location: ", error);
         updateStatus(`Failed to save location: ${error.message}`, "error");
@@ -132,64 +136,24 @@
       });
     }
 
-    // Get user's current location and route to destination
-    function getUserLocation(destinationLatLng) {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
-          const accuracy = position.coords.accuracy;
-
-          L.circle(userLatLng, {
-            radius: Math.min(accuracy, 50),
-            color: 'blue',
-            fillOpacity: 0.2
-          }).addTo(map);
-
-          // Add routing
-          addRouting(userLatLng, destinationLatLng, {
-            showDirections: true,
-            suppressMarkers: true
-          });
-
-          updateStatus(`Your location is accurate within ${Math.round(accuracy)} meters.`, "info");
-        },
-        error => {
-          console.error("Error getting user's location:", error);
-          alert("Could not get your location. Please ensure location services are enabled and try again.");
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      );
-    }
-
-    // Reusable routing function
-    function addRouting(startLatLng, endLatLng, options = {}) {
+    function addRouting(startLatLng, endLatLng) {
       if (routeControl) {
         map.removeControl(routeControl);
       }
 
       routeControl = L.Routing.control({
         waypoints: [startLatLng, endLatLng],
-        routeWhileDragging: true,
-        show: true,
+        routeWhileDragging: false,
         geocoder: L.Control.Geocoder.nominatim(),
-        createMarker: options.suppressMarkers ? () => null : undefined,
-        itinerary: options.showDirections ? {
+        createMarker: function(i, waypoint) {
+          return L.marker(waypoint.latLng, { draggable: false });
+        },
+        itinerary: {
           container: document.getElementById('directionsPanel')
-        } : undefined
+        }
       }).addTo(map);
 
-      if (options.showDirections) {
-        document.getElementById("directionsPanel").style.display = "block";
-      }
+      document.getElementById("directionsPanel").style.display = "block";
     }
 
     function toggleDirections() {

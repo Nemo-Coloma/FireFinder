@@ -1,19 +1,27 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Location Picker with Route</title>
 
   <!-- Firebase -->
+
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <!-- Leaflet CSS & JS -->
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-  <!-- Leaflet Routing Machine -->
+  <!-- Routing and Geocoder -->
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f6fa; }
@@ -46,6 +54,7 @@
     .error { color: red; }
     .info { color: #333; }
   </style>
+
 </head>
 <body>
   <div class="container">
@@ -56,11 +65,14 @@
       <div id="status" class="status info" aria-live="polite">Click on the map to select a location.</div>
     </div>
 
-    <div class="map-container">
-      <button class="icon-button" id="dirBtn" onclick="toggleDirections()" title="Toggle Directions">🧭</button>
-      <div id="map"></div>
-      <div class="directions-panel" id="directionsPanel"></div>
-    </div>
+```
+<div class="map-container">
+  <button class="icon-button" id="dirBtn" onclick="toggleDirections()" title="Toggle Directions">🧭</button>
+  <div id="map"></div>
+  <div class="directions-panel" id="directionsPanel"></div>
+</div>
+```
+
   </div>
 
   <script>
@@ -78,14 +90,20 @@
     const database = firebase.database();
 
     // Map setup
-    const map = L.map('map').setView([14.832005, 120.282648], 13);
+    const map = L.map('map').setView([14.8292, 120.2820], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+    L.marker(gordonCollegeLatLng).addTo(map)
+      .bindPopup('Gordon College')
+      .openPopup();
+
     let selectedLocation = null;
     let marker = null;
     let routeControl = null;
+    let dispatcherMarker = null; // Track dispatcher marker
     const saveButton = document.getElementById('saveButton');
     const statusElement = document.getElementById('status');
 
@@ -128,61 +146,67 @@
       });
     }
 
-    // Show route to selected location
-    function showRouteTo(lat, lng) {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
+  function showRouteTo(lat, lng) {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const { latitude, longitude, accuracy } = position.coords;
+
+      // Ignore location updates with low accuracy
+      if (accuracy > 50) { // Set a threshold for acceptable accuracy (e.g., 50 meters)
+        alert("Location accuracy is too low. Please try again.");
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude, accuracy } = position.coords;
+      const userLatLng = L.latLng(latitude, longitude);
+      const destination = L.latLng(lat, lng);
 
-          // Log user position
-          console.log("User's Position: ", latitude, longitude, accuracy);
+      console.log("User's Location:", userLatLng);
+      console.log("Accuracy (meters):", accuracy);
 
-          // Add a circle to represent the reduced accuracy radius
-          const userLatLng = L.latLng(latitude, longitude);
-          L.circle(userLatLng, {
-            radius: Math.min(accuracy, 50), // Limit the radius to a maximum of 50 meters
-            color: 'blue',
-            fillOpacity: 0.2
-          }).addTo(map);
+      // Add a circle to represent the reduced accuracy radius
+      L.circle(userLatLng, {
+        radius: Math.min(accuracy, 50), // Limit the radius to a maximum of 50 meters
+        color: 'blue',
+        fillOpacity: 0.2
+      }).addTo(map);
 
-          const destination = L.latLng(lat, lng);
+      if (routeControl) {
+        map.removeControl(routeControl);
+      }
 
-          if (routeControl) {
-            map.removeControl(routeControl);
-          }
-
-          // Add routing control
-          routeControl = L.Routing.control({
-            waypoints: [userLatLng, destination],
-            routeWhileDragging: true,
-            show: true,
-            createMarker: function() { return null; },  // Disable marker creation
-            itinerary: {
-              container: document.getElementById('directionsPanel')
-            }
-          }).addTo(map);
-
-          document.getElementById("directionsPanel").style.display = "block";
-
-          // Display accuracy feedback
-          updateStatus(`Your location is accurate within ${Math.round(accuracy)} meters.`, "info");
-        },
-        error => {
-          console.error("Error getting user's location:", error);
-          alert("Could not get your location. Please ensure location services are enabled and try again.");
-        },
-        {
-          enableHighAccuracy: true, // Request high accuracy
-          timeout: 10000, // Timeout after 10 seconds
-          maximumAge: 0 // Do not use cached location
+      // Add routing control
+      routeControl = L.Routing.control({
+        waypoints: [userLatLng, destination],
+        routeWhileDragging: false,
+        createMarker: () => null,
+        show: false,
+        geocoder: L.Control.Geocoder.nominatim(),
+        itinerary: {
+          container: document.getElementById('directionsPanel')
         }
-      );
+      }).addTo(map);
+
+      document.getElementById("directionsPanel").style.display = "block";
+
+      // Display accuracy feedback
+      updateStatus(`Your location is accurate within ${Math.round(accuracy)} meters.`, "info");
+    },
+    error => {
+      console.error("Error getting user's location:", error);
+      alert("Could not get your location. Please ensure location services are enabled and try again.");
+    },
+    {
+      enableHighAccuracy: true, // Request high accuracy
+      timeout: 10000, // Timeout after 10 seconds
+      maximumAge: 0 // Do not use cached location
     }
+  );
+}
 
     function toggleDirections() {
       const panel = document.getElementById("directionsPanel");
@@ -200,4 +224,7 @@
       statusElement.textContent = msg;
       statusElement.className = 'status ' + type;
     }
- 
+  </script>
+
+</body>
+</html>

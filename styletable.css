@@ -24,12 +24,13 @@
          width: 100%; 
     border-collapse: separate; /* Change from collapse to separate */
     border-spacing: 0 12px;    /* Adds 12px vertical space between rows */
-    margin-top: 20px;
+    margin-top: 0px;
     }
     
-    .table-wrapper {
+   .table-wrapper {
     width: 102%;
-    margin-top: 10cap;
+    margin-top: 2rem; /* Reduce the top margin to move the table closer to the triangle */
+
 }
     th, td { 
         padding: 16px 18px; 
@@ -43,7 +44,7 @@
     font-size: 20px;
     letter-spacing: 1px;
     color: #ffffff;
-    background: #1d1d1d;
+    background: #141414;
     text-align: center;
 }
 /* ...existing code... */
@@ -102,6 +103,9 @@ td:last-child button:hover{
     form input { 
         margin: 5px 10px 5px 0; 
     }
+
+    
+
 
 body {
     margin: 0; /* Remove default margin */

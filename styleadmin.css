@@ -238,3 +238,115 @@ tbody tr:hover {
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+   .rectangle {
+        height: 50px;
+        font-size: 20px;
+        padding-top: 10px;
+    }
+
+    .rectangle img {
+        height: 25px; /* Reduce logo size */
+        left: 10px; /* Adjust spacing */
+    }
+
+    .rectangle img:nth-child(2) {
+        margin-left: 30px; /* Adjust spacing between logos */
+    }
+
+    .rectangle img:nth-child(3) {
+        height: 100px;
+    }
+
+  .dropdown {
+    margin-left: 0 !important;
+    margin-top: 10px;
+  }
+
+  .dropdown #icon {
+     margin-left: 0 !important;
+  }
+
+  .dropdown-content {
+    position: static;
+    width: 100%;
+    text-align: center;
+  }
+
+  .map-container {
+    flex-direction: column;
+    height: auto; /* Keep auto height */
+  }
+
+  .trapezoid {
+    position: fixed; /* Keep fixed for small screens */
+    bottom: 10px; /* Position from the bottom */
+    left: 10px; /* Position from the left */
+    width: 120px; /* Adjust width for small screens */
+    clip-path: none; /* Remove clip-path for simplicity on small screens */
+    text-align: center;
+    padding: 5px; /* Adjust padding */
+    margin-bottom: 0; /* Remove margin */
+    font-size: 16px; /* Adjust font size */
+    height: 50px; /* Adjust height */
+  }
+
+  .trapezoid.moved-up {
+    bottom: calc(300px + 10px); /* Adjust moved-up position for small screens */
+  }
+
+
+  .table-container {
+    width: 100%; /* Keep 100% width */
+    margin-left: 0;
+    overflow-x: auto; /* Add horizontal scroll for the table */
+    position: absolute; /* Keep absolute positioning */
+    bottom: 60px; /* Position just above the trapezoid (50px height + 10px bottom offset) */
+    left: 0; /* Position from the left */
+    height: auto; /* Ensure height is auto */
+    max-height: 300px; /* Limit max height to match map height */
+    overflow-y: auto; /* Add vertical scroll for table content */
+    transition: bottom 0.3s ease; /* Add transition for smooth movement */
+  }
+
+  .table-container.moved-up {
+      bottom: calc(300px + 60px); /* Move up by map height + trapezoid height + offset */
+  }
+
+
+  .scrollable-table {
+    margin-right: 0; /* Remove margin */
+    width: 100%;
+    max-height: none; /* Remove max height here, controlled by container */
+    overflow-y: visible; /* Let container handle scrolling */
+  }
+
+  .scrollable-table table {
+    width: 100%; /* Ensure table takes full width */
+    margin-left: 0; /* Remove margin */
+    transform: none; /* Removed transform */
+  }
+
+  .scrollable-table th,
+  .scrollable-table td {
+    padding: 6px; /* Adjust padding for smaller screens */
+    font-size: 0.9em; /* Adjust font size */
+  }
+
+  #map {
+    height: 300px; /* Adjust map height for smaller screens */
+    width: 100%;
+  }
+
+  .status {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    margin-top: 10px;
+    position: static; /* Changed from absolute to static */
+    transform: none; /* Removed transform */
+  }
+}
+
+
+

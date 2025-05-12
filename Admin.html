@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,7 @@
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> <!-- Added Realtime Database script -->
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
@@ -31,11 +30,11 @@
       <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
       <div class="dropdown-content">
         <a href="Table.html">Crew</a>
-        <a href="#report">Report</a>
-        <a href="#logout">Logout</a>
+        <a href="report.html">Report</a>
+        <a href="Intro FireFinder.html">Logout</a>
       </div>
     </div>
-    
+
     <span>ADMIN</span>
   </div>
 
@@ -70,7 +69,7 @@
   </div>
 </div>
 
- 
+
     <!-- Map -->
     <div id="map"></div>
 
@@ -82,6 +81,9 @@
  <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
   import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+  // Import Realtime Database module
+  import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
@@ -89,113 +91,147 @@
     projectId: "firefinder-d5c0a",
     storageBucket: "firefinder-d5c0a.appspot.com",
     messagingSenderId: "221428549294",
-    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
+    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com" // Added Realtime Database URL
   };
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const realtimeDb = getDatabase(app); // Initialize Realtime Database
 
- 
-  // Initialize Leaflet Map
-  const map = L.map('map').setView([14.8292, 120.2820], 13);
-
+  // Map Setup
+  const map = L.map('map').setView([14.832, 120.2820], 14.5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Add Gordon College Marker
   const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-  L.marker(gordonCollegeLatLng).addTo(map).bindPopup('Gordon College').openPopup();
+  L.marker(gordonCollegeLatLng).addTo(map)
+    .bindPopup('Gordon College')
+    .openPopup();
 
-  const existingMarkersGroup = L.layerGroup().addTo(map);
-  let selectedLocation = null;
-  let marker = null;
+  let selectedLocation = null; // This will now store the location from Firebase
+  let marker = null; // Marker for the location from Firebase
   let routeControl = null;
+  const statusElement = document.getElementById('status');
 
-  // Map Click Event
-  map.on('click', function (e) {
-    selectedLocation = e.latlng;
+  // --- Realtime Location Sync ---
+  const currentLocationRef = ref(realtimeDb, 'currentLocation');
+  onValue(currentLocationRef, (snapshot) => {
+    const locationData = snapshot.val();
+    if (locationData) {
+      const newLocation = L.latLng(locationData.latitude, locationData.longitude);
 
-    // Remove previous marker if it exists
-    if (marker) map.removeLayer(marker);
-
-    // Remove previous route if it exists
-    if (routeControl) map.removeControl(routeControl);
-
-    // Add new marker
-    marker = L.marker(selectedLocation).addTo(map).bindPopup("Selected Location").openPopup();
-
-    // Add routing from Gordon College to the selected location
-    routeControl = L.Routing.control({
-      waypoints: [
-        gordonCollegeLatLng,
-        selectedLocation
-      ],
-      routeWhileDragging: false,
-      draggableWaypoints: false,
-      createMarker: function (i, waypoint) {
-        if (i === 0) {
-          return L.marker(waypoint.latLng).bindPopup("Start: Gordon College");
-        } else if (i === 1) {
-          return L.marker(waypoint.latLng).bindPopup("End: Selected Location");
-        }
-        return null;
+      // Remove previous marker if it exists
+      if (marker) {
+        map.removeLayer(marker);
       }
-    }).addTo(map);
 
-    // Enable the Save button
-    document.getElementById('saveButton').disabled = false;
-    updateStatus("Location selected. Enter a name and save.", "success");
+      // Add new marker at the received location
+      marker = L.marker(newLocation).addTo(map)
+               .bindPopup("Reported Location") // Changed popup text
+               .openPopup();
+
+      selectedLocation = newLocation; // Update selectedLocation
+
+      updateStatus(`Latest reported location received: (${newLocation.lat}, ${newLocation.lng})`, "info");
+
+      // Add routing from Gordon College to the new reported location
+      addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, newLocation.lat, newLocation.lng);
+
+      // Optionally, center the map on the new location
+      map.setView(newLocation, map.getZoom());
+
+    } else {
+      // Handle case where there is no location data (e.g., initially empty)
+      if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+      }
+      if (routeControl) {
+          map.removeControl(routeControl);
+          routeControl = null;
+      }
+      selectedLocation = null;
+      updateStatus("No reported location available.", "info");
+    }
   });
+  // --- End Realtime Location Sync ---
 
-  // Save Location to Firebase
-  window.saveLocation = function () {
-    const locationName = document.getElementById('locationName').value.trim();
-    if (!selectedLocation || !locationName) {
-      alert("Please select a location and enter a name.");
-      return;
-    }
 
-    const newLocationRef = push(locationsRef);
-    set(newLocationRef, {
-      name: locationName,
-      latitude: selectedLocation.lat,
-      longitude: selectedLocation.lng
-    }).then(() => {
-      alert('Location saved successfully!');
-      document.getElementById('saveButton').disabled = true;
-      document.getElementById('locationName').value = '';
-      updateStatus("Location saved!", "success");
-    }).catch(error => {
-      console.error('Error saving location:', error);
-      updateStatus("Error saving location.", "error");
+  // Toggle Table Visibility
+ const trapezoid = document.getElementById('trapezoid');
+const tableContainer = document.getElementById('tableContainer');
+
+function adjustTrapezoidPosition() {
+  const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
+  const offset = -22; // Adjust this value to lower the trapezoid
+  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
+}
+// Add event listener to adjust position when the table is toggled
+trapezoid.addEventListener('click', () => {
+  if (tableContainer.style.display === 'none') {
+    tableContainer.style.display = 'block'; // Show the table
+    adjustTrapezoidPosition(); // Adjust trapezoid position
+  } else {
+    tableContainer.style.display = 'none'; // Hide the table
+    trapezoid.style.bottom = '0'; // Reset trapezoid position
+  }
+});
+
+
+// Adjust position on page load
+adjustTrapezoidPosition();
+
+  // Load Members from Firestore
+  const tableBody = document.querySelector('#tableContainer tbody');
+
+  async function loadMembers() {
+    tableBody.innerHTML = '';
+    const querySnapshot = await getDocs(collection(db, 'Dashboard'));
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${data.fullName}</td>
+        <td>${data.position}</td>
+        <td>${data.status === 'Active' ? 'Active' : 'Off-Duty'}</td>
+      `;
+      tableBody.appendChild(row);
     });
-  };
-
-  // Reset Map Functionality
-  function resetMap() {
-    // Clear all markers in the existingMarkersGroup
-    existingMarkersGroup.clearLayers();
-
-    // Re-add the Gordon College marker
-    L.marker(gordonCollegeLatLng).addTo(existingMarkersGroup).bindPopup('Gordon College').openPopup();
-
-    // Remove any existing route
-    if (routeControl) {
-      map.removeControl(routeControl);
-      routeControl = null;
-    }
-
-    // Update the status
-    updateStatus("Map has been reset. Only Gordon College marker remains.", "info");
   }
 
-  // Update Status
-  function updateStatus(msg = '', type = 'info') {
-    const statusElement = document.getElementById('status');
-    statusElement.textContent = msg;
-    statusElement.className = 'status ' + type;
+  loadMembers();
+
+  // Update Status Message
+  function updateStatus(message, type) {
+    statusElement.textContent = message;
+    statusElement.className = `status ${type}`;
+  }
+
+   // Add Routing Functionality
+  function addRouting(startLat, startLng, endLat, endLng) {
+    const startPoint = L.latLng(startLat, startLng);
+    const endPoint = L.latLng(endLat, endLng);
+
+    // Remove existing route if it exists
+    if (routeControl) {
+      map.removeControl(routeControl);
+    }
+
+    // Add a routing control to the map
+    routeControl = L.Routing.control({
+      waypoints: [startPoint, endPoint],
+      routeWhileDragging: true,
+      geocoder: L.Control.Geocoder.nominatim(),
+      createMarker: function (i, waypoint) {
+        // Prevent default markers from routing machine
+        return null;
+      },
+      show: false // This option hides the directions panel
+    }).addTo(map);
   }
 </script>
 </body>

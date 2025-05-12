@@ -1,63 +1,135 @@
 
-body {
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
-    font-family: kanit, sans-serif;
-    overflow: hidden; /* Prevent scrollbars */
+
+    /* General Styles */
+  html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f6fa;
+  overflow: hidden; /* Prevent scrolling */
 }
-.rectangle {
+
+   .map-container {
+    position: relative;
+    height: calc(100vh - 70px); /* Adjust height to account for the rectangle */
+    display: flex;
+    flex-direction: column;
+}
+
+#map {
+    flex: 1;
+    height: 100%;
+    border-radius: 10px;
+    z-index: 0; /* Ensure the map stays below the rectangle */
+}
+
+    .map-overlay-button {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      background-color: #851212;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .map-overlay-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+    }
+
+    .status.success {
+      color: green;
+    }
+
+    .status.error {
+      color: red;
+    }
+
+    .status.info {
+      color: blue;
+    }
+
+    .rectangle {
     height: 70px;
     width: 100%;
-    background: linear-gradient(180deg, #ff0e0e, #3b0909); /* Gradient from dark gray to light gray */
+    background: linear-gradient(180deg, #ff0e0e, #3b0909);
     text-align: center;
-    padding-top: 10px; /* Add top margin for the text */
-    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    padding-top: 10px;
+    box-sizing: border-box;
     font-weight: 500px;
     font-size: 30px;
     color: rgb(255, 255, 255);
     position: relative;
+    z-index: 1000; /* Ensure the rectangle stays on top */
+
 }
-.rectangle img {
-    height: 45px; /* Adjust logo size */
-    position: absolute; /* Position the logo absolutely */
-    left: 40px; /* Add space from the left edge */
-    border-radius: 50%;
-}
-.rectangle img:nth-child(2) {
-    margin-left: 75px; /* Add space between the two logos */
-}
-.rectangle img:nth-child(3) { /*ICONssss   */
-   
-}
-.dropdown img#icon {
-    cursor: pointer;
-    height: 35px;
-    position: absolute; /* Position it absolutely within the rectangle */
-    top: 50%; /* Center vertically */
-    transform: translateY(-60%); /* Adjust for perfect vertical centering */
-    z-index: 4;
+.rectangle span {
+     position: relative; /* Allows fine-tuning with top */
+    top: 10px; /* Move it down */
 }
 
+.rectangle img {
+    height: 45px;
+    position: absolute;
+    left: 40px;
+    border-radius: 50%;
+}
+
+.rectangle img:nth-child(2) {
+    margin-left: 75px;
+}
+
+/* Dropdown Menu */
 .dropdown {
     position: relative;
     display: inline-block;
 }
 
-    .dropdown-content {
-        display: block; /* Keep it block for transition effects */
-        position: absolute;
-        background: linear-gradient(180deg, #3a3a3a, #11142c);
-        min-width: 150px;
-        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
-        z-index: 4;
-        margin-left: 67cap;
-        margin-top: 3cap;
-        border-radius: 10px;
-        font-size: 16px;
-        opacity: 0; /* Initially hidden */
-        visibility: hidden; /* Prevent interaction when hidden */
-        transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth fade-in/out */
-    }
+.dropdown img#icon {
+    cursor: pointer;
+    height: 35px;
+    position: absolute;
+    top: 50%;
+    left: 0px; /* Move the icon explicitly to the left */
+    transform: translateY(-50%);
+    z-index: 4;
+}
+
+.dropdown-content {
+    display: block;
+    position: absolute;
+    background: linear-gradient(180deg, #3a3a3a, #11142c);
+    min-width: 150px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+    z-index: 4;
+    margin-left: 63cap;
+    margin-top: 3cap;
+    border-radius: 10px;
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 
 .dropdown-content a {
     color: rgb(255, 255, 255);
@@ -70,124 +142,99 @@ body {
     background-color: #1c1c1c;
     border-radius: 5px;
 }
+
 .dropdown:hover .dropdown-content {
-    opacity: 1; /* Show dropdown */
-    visibility: visible; /* Make it interactable */
+    opacity: 1;
+    visibility: visible;
 }
 
-iframe {
-    position: relative; /* Ensure the map doesn't overlap */
-    z-index: 1; /* Lower z-index than the trapezoid */
-}
+
+/* Trapezoid */
 .trapezoid {
-    margin-top: 770px; 
-    border-bottom: 60px solid rgb(129, 23, 23);
-    border-left: 1px solid transparent;
-    border-right: 60px solid transparent;
-    height: 0;
-    width: 140px;
-    position: relative;
-    z-index: 10;
-    cursor: pointer; /* Make it clickable */
-    transition: transform 0.5s ease; /* Smooth animation */
-    padding-top: 20px;
+  position: absolute;
+  bottom: 0;
+  left: -2cap;
+  width: 15rem;
+  height: 70px;
+  background-color: #650b0b;
+  clip-path: polygon(25px 0, calc(100% - 40px) 0, 100% 100%, 0 100%);
+  color: #f5f6fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 33px;
+  font-weight: bold;
+  z-index: 1000;
+  cursor: pointer;
+  transition: bottom 0.3s ease; /* Smooth animation */
 }
 
-.trapezoid.clicked {
-    transform: translateY(-450px); /* Move up */
+
+.trapezoid.moved-up {
+  bottom: 349px; /* Adjust this value to match the table height */
 }
 
 .table-container {
-    position: absolute;
-    top: 35cap; /* Adjust this value to position the table below the trapezoid */
-    left: 25.5%; /* Center the table horizontally */
-    transform: translateX(-50%); /* Center alignment */
-    width: 50%; /* Adjust width as needed */
-    background: linear-gradient(180deg, #ff0e0e, #3b0909);
-    border: 1px solid #000000;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    opacity: 0; /* Initially hidden */
-    visibility: hidden; /* Prevent interaction when hidden */
-    transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth animation */
-    font-size: 20px;
-    z-index: 11;
+  position: absolute;
+  bottom: -22px;
+  left: -5px;
+  width: 40%;
+  height: auto; /* Allow dynamic height */
+  max-height: 500px; /* Optional: Limit max height */
+  background: linear-gradient(180deg, #9d1111, #460202);
+  overflow: auto;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 0px;
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    color: #fff;
 }
 
-
-.table-container.visible {
-    opacity: 1; /* Show when trapezoid is clicked */
-    visibility: visible; /* Make it interactable */
-    transform: translateX(-50%) translateY(0); /* Ensure proper alignment */
+/* Scrollable Table */
+.scrollable-table {
+ margin-right: 100px;
+  width: 100%; /* Ensure the table takes the full width of the container */
+  max-height: 400px;
+  overflow-y: auto;
 }
-
-.table-container.hidden {
-    opacity: 0; /* Hide when trapezoid is clicked again */
-    visibility: hidden; /* Prevent interaction */
-    transform: translateX(-50%) translateY(-20px); /* Add slight upward animation */
-}
-
+/* Table Styles */
 table {
-    width: 100%;
-    border-collapse: collapse;
+  max-width: 100%;
+  width: 100%; /* Make the table fit the container */
+  border-collapse: collapse;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin-left: -50px;
+  transform: translateX(-10rem);
+
+  
 }
 
-table th, table td {
-    border: 1px solid #000000;
-    padding: 8px;
-    text-align: left;
+thead {
+  background: linear-gradient(180deg, #560c0c, #290404);
+  color: white;
+ 
+  
 }
 
-table th {
-    background-color: #550000;
-    font-weight: bold;
-}
-@media (max-width: 768px) {
-    .rectangle {
-        font-size: 20px;
-    }
-
-    .rectangle img {
-        height: 35px;
-    }
-
-    .trapezoid {
-        margin-top: 600px;
-        width: 100px;
-    }
-
-    .table-container {
-        width: 95%;
-        top: 450px;
-    }
-
-    table th, table td {
-        padding: 6px;
-        font-size: 14px;
-    }
+th, td {
+  padding: 12px;
+   font-size: 20px;
+  
 }
 
-@media (max-width: 480px) {
-    .rectangle {
-        font-size: 16px;
-    }
-
-    .rectangle img {
-        height: 30px;
-    }
-
-    .trapezoid {
-        margin-top: 500px;
-        width: 80px;
-    }
-
-    .table-container {
-        width: 100%;
-        top: 400px;
-    }
-
-    table th, table td {
-        padding: 4px;
-        font-size: 12px;
-    }
+th {
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: white;
 }
+
+tbody tr:hover {
+  background-color: #3e0c0c;
+  cursor: pointer;
+}
+

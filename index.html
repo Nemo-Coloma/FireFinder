@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style (1).css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIVILIAN</title>
 
@@ -112,100 +113,120 @@ createAccountModal.addEventListener('click', (event) => {
     }
 });
         
- // Firebase Initialization
-    const firebaseConfig = {
-      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
-      authDomain: "firefinder-d5c0a.firebaseapp.com",
-      databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
-      projectId: "firefinder-d5c0a",
-      storageBucket: "firefinder-d5c0a.firebasestorage.app",
-      messagingSenderId: "221428549294",
-      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+ 
+  // Firebase Initialization
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+    authDomain: "firefinder-d5c0a.firebaseapp.com",
+    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
+    projectId: "firefinder-d5c0a",
+    storageBucket: "firefinder-d5c0a.firebasestorage.app",
+    messagingSenderId: "221428549294",
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-    // Map Setup
-    const map = L.map('map').setView([14.8292, 120.2820], 14.5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  // Map Setup
+  const map = L.map('map').setView([14.8292, 120.2820], 14.5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-    L.marker(gordonCollegeLatLng).addTo(map)
-      .bindPopup('Gordon College')
+  // Add Gordon College Marker
+  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+  L.marker(gordonCollegeLatLng).addTo(map)
+    .bindPopup('Gordon College')
+    .openPopup();
+
+  let selectedLocation = null;
+  let marker = null;
+  let routeControl = null;
+  const saveButton = document.getElementById('saveButton');
+  const statusElement = document.getElementById('status');
+
+  // Map Click Event
+  map.on('click', function (e) {
+    selectedLocation = e.latlng;
+
+    // Remove previous marker if it exists
+    if (marker) map.removeLayer(marker);
+
+    // Add new marker
+    marker = L.marker(selectedLocation).addTo(map)
+      .bindPopup("Selected Location")
       .openPopup();
 
-    let selectedLocation = null;
-    let marker = null;
-    const saveButton = document.getElementById('saveButton');
-    const statusElement = document.getElementById('status');
+    saveButton.disabled = false; // Enable the button
+    updateStatus("Location selected. Click 'Save Location' to save.", "info");
 
-    // Map Click Event
-    map.on('click', function(e) {
-      selectedLocation = e.latlng;
-      if (marker) map.removeLayer(marker);
-      marker = L.marker(selectedLocation).addTo(map)
-               .bindPopup("Selected Location")
-               .openPopup();
-      saveButton.disabled = false; // Enable the button
-      updateStatus("Location selected. Click 'Save Location' to save.", "info");
+    // Add routing from Gordon College to the selected location
+    addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
+  });
+
+  // Save Location Button Click Event
+  saveButton.addEventListener('click', function () {
+    if (!saveButton.disabled) {
+      saveLocation();
+    }
+  });
+
+  // Save Location
+  function saveLocation() {
+    if (!selectedLocation) {
+      updateStatus("No location selected.", "error");
+      return;
+    }
+
+    const locationData = {
+      latitude: selectedLocation.lat,
+      longitude: selectedLocation.lng,
+      timestamp: Date.now()
+    };
+
+    saveButton.disabled = true; // Disable the button after saving
+    updateStatus("Saving location...", "info");
+
+    database.ref("Locations").push(locationData).then(() => {
+      updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
+    }).catch(error => {
+      console.error("Error saving location: ", error);
+      updateStatus(`Failed to save location: ${error.message}`, "error");
+      saveButton.disabled = false; // Re-enable the button if saving fails
     });
+  }
 
-    // Save Location Button Click Event
-    saveButton.addEventListener('click', function() {
-      if (!saveButton.disabled) {
-        saveLocation();
+  // Add Routing Functionality
+  function addRouting(startLat, startLng, endLat, endLng) {
+    const startPoint = L.latLng(startLat, startLng);
+    const endPoint = L.latLng(endLat, endLng);
+
+    // Remove existing route if it exists
+    if (routeControl) {
+      map.removeControl(routeControl);
+    }
+
+    // Add a routing control to the map
+    routeControl = L.Routing.control({
+      waypoints: [startPoint, endPoint],
+      routeWhileDragging: true,
+      geocoder: L.Control.Geocoder.nominatim(),
+      createMarker: function (i, waypoint) {
+        if (i === 0) {
+          return L.marker(waypoint.latLng).bindPopup("Start: Gordon College");
+        } else if (i === 1) {
+          return L.marker(waypoint.latLng).bindPopup("End: Selected Location");
+        }
+        return null;
       }
-    });
+    }).addTo(map);
+  }
 
-    // Save Location
-    function saveLocation() {
-      if (!selectedLocation) {
-        updateStatus("No location selected.", "error");
-        return;
-      }
-
-      const locationData = {
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        timestamp: Date.now()
-      };
-
-      saveButton.disabled = true; // Disable the button after saving
-      updateStatus("Saving location...", "info");
-
-      database.ref("Locations").push(locationData).then(() => {
-        updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
-      }).catch(error => {
-        console.error("Error saving location: ", error);
-        updateStatus(`Failed to save location: ${error.message}`, "error");
-        saveButton.disabled = false; // Re-enable the button if saving fails
-      });
-    }
-
-    // Update Status
-    function updateStatus(msg = '', type = 'info') {
-      statusElement.textContent = msg;
-      statusElement.className = 'status ' + type;
-    }
-    const loginForm = document.querySelector('#login-modal form');
-
-// Handle login form submission
-loginForm.addEventListener('submit', (event) => {
-    event.preventDefault(); // Prevent the default form submission behavior
-
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    // Check if the credentials match the admin's
-    if (email === 'adminfdp@gmail.com' && password === '123456') {
-        window.location.href = 'admin.html'; // Redirect to admin.html
-    } else {
-        updateStatus('Invalid email or password.', 'error'); // Show error message
-    }
-});
-
-    </script>
+  // Update Status
+  function updateStatus(msg = '', type = 'info') {
+    statusElement.textContent = msg;
+    statusElement.className = 'status ' + type;
+  }
+</script>
 </body>
 </html>

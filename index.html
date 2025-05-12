@@ -160,29 +160,35 @@ createAccountModal.addEventListener('click', (event) => {
     });
 
     // Save Location
-    function saveLocation() {
-      if (!selectedLocation) {
-        updateStatus("No location selected.", "error");
-        return;
-      }
+   function saveLocation() {
+  if (!selectedLocation) {
+    updateStatus("No location selected.", "error");
+    return;
+  }
 
-      const locationData = {
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        timestamp: Date.now()
-      };
+  const locationData = {
+    latitude: selectedLocation.lat,
+    longitude: selectedLocation.lng,
+    timestamp: Date.now()
+  };
 
-      saveButton.disabled = true; // Disable the button after saving
-      updateStatus("Saving location...", "info");
+  saveButton.disabled = true; // Disable the button after saving
+  updateStatus("Saving location...", "info");
 
-      database.ref("Locations").push(locationData).then(() => {
-        updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
-      }).catch(error => {
-        console.error("Error saving location: ", error);
-        updateStatus(`Failed to save location: ${error.message}`, "error");
-        saveButton.disabled = false; // Re-enable the button if saving fails
-      });
-    }
+  database.ref("Locations").push(locationData).then(() => {
+    updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
+    
+    // Redirect to user.html after successful save
+    setTimeout(() => {
+      window.location.href = "user.html";
+    }, 1500); // Optional delay to show the status message
+  }).catch(error => {
+    console.error("Error saving location: ", error);
+    updateStatus(`Failed to save location: ${error.message}`, "error");
+    saveButton.disabled = false; // Re-enable the button if saving fails
+  });
+}
+
 
     // Update Status
     function updateStatus(msg = '', type = 'info') {

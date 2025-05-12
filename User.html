@@ -128,28 +128,27 @@
       });
     }
 
-    // Show route to selected location
-    function showRouteTo(lat, lng) {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
-        return;
-      }
+    // Add routing functionality
+function addRouting(startLat, startLng, endLat, endLng) {
+  const startPoint = L.latLng(startLat, startLng);
+  const endPoint = L.latLng(endLat, endLng);
 
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude, accuracy } = position.coords;
+  // Add a routing control to the map
+  L.Routing.control({
+    waypoints: [startPoint, endPoint],
+    routeWhileDragging: true,
+    show: true,
+    createMarker: function(i, waypoint, n) {
+      return L.marker(waypoint.latLng, {
+        draggable: true
+      });
+    }
+  }).addTo(map);
+}
 
-          // Ignore location updates with low accuracy
-          if (accuracy > 50) { // Set a threshold for acceptable accuracy (e.g., 50 meters)
-            alert("Location accuracy is too low. Please try again.");
-            return;
-          }
-
-          const userLatLng = L.latLng(latitude, longitude);
-          const destination = L.latLng(lat, lng);
-
-          console.log("User's Location:", userLatLng);
-          console.log("Accuracy (meters):", accuracy);
+// Example usage: Add a route from Gordon College to a sample destination
+const sampleDestinationLatLng = L.latLng(14.8292, 120.2820);
+addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, sampleDestinationLatLng.lat, sampleDestinationLatLng.lng);
 
           // Add a circle to represent the reduced accuracy radius
           L.circle(userLatLng, {

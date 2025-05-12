@@ -1,84 +1,177 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styleadmin.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Picker with Route</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <!-- Routing and Geocoder -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+
+  <link rel="stylesheet" href="styleadmin.css">
 </head>
 <body>
+  <div class="rectangle">
+    <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+    <img src="Fire Dep Logo.jpg">
 
-    <div class="rectangle">
-        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
-        <img src="Fire Dep Logo.jpg">
-        
-        <!-- Dropdown for the icon -->
-        <!-- Dropdown for the icon -->
-<div class="dropdown">
-    <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
-    <div class="dropdown-content">
+    <div class="dropdown">
+      <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
+      <div class="dropdown-content">
         <a href="Table.html">Crew</a>
         <a href="#report">Report</a>
         <a href="#logout">Logout</a>
+      </div>
     </div>
+    
+    <span>ADMIN</span>
+  </div>
+
+  <div class="map-container">
+    <!-- Trapezoid -->
+    <div id="trapezoid" class="trapezoid">UNITS</div>
+
+    <!-- Table Container -->
+  <div id="tableContainer" class="table-container" style="display: none;">
+  <div class="scrollable-table">
+    <table style="width: 100%; margin-left: 10rem;">
+      <thead>
+        <tr>
+          <th padding: 8px;>Name</th>
+          <th padding: 8px;>Position</th>
+          <th padding: 8px;>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 1</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 2</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 3</td>
+        </tr>
+        <tr>
+          <td>Row 2, Col 1</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 2</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
-        
-        <span>ADMIN</span>
 
-        <div class="trapezoid" id="trapezoid">UNITS</div>
-        <div class="table-container" id="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Crew</th>
-                        <th>Location</th>
-                    </tr>
-                </thead>
-                <tbody> 
-                    <tr>
-                        <td>1</td>
-                        <td>Dela Cruz, Juan</td>
-                        <td>Active</td>
-                        <td>Alpha</td>
-                        <td>Base</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Verstappen, Max </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Leclerc, Charles</td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>Sung Jin Woo</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
  
-    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d8850.69713476374!2d120.26082134800524!3d14.849273963720886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sph!4v1746511157158!5m2!1sen!2sph" width="1705" height="828" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-    <script>
-      const trapezoid = document.getElementById('trapezoid');
-      const tableContainer = document.getElementById('table-container');
+    <!-- Map -->
+    <div id="map"></div>
 
-      trapezoid.addEventListener('click', () => {
-          trapezoid.classList.toggle('clicked'); // Add or remove the 'clicked' class
+    <!-- Status Message -->
+    <div id="status" class="status"></div>
+  </div>
 
-          if (tableContainer.classList.contains('visible')) {
-              tableContainer.classList.remove('visible');
-              tableContainer.classList.add('hidden'); // Move the table back down
-          } else {
-              tableContainer.classList.remove('hidden');
-              tableContainer.classList.add('visible'); // Move the table up
-          }
-      });
-    </script>
+
+ <script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+  import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+    authDomain: "firefinder-d5c0a.firebaseapp.com",
+    projectId: "firefinder-d5c0a",
+    storageBucket: "firefinder-d5c0a.appspot.com",
+    messagingSenderId: "221428549294",
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Map Setup
+  const map = L.map('map').setView([14.832, 120.2820], 14.5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+  L.marker(gordonCollegeLatLng).addTo(map)
+    .bindPopup('Gordon College')
+    .openPopup();
+
+  let selectedLocation = null;
+  let marker = null;
+  const saveButton = document.getElementById('saveButton');
+  const statusElement = document.getElementById('status');
+
+  // Map Click Event
+  map.on('click', function(e) {
+    selectedLocation = e.latlng;
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(selectedLocation).addTo(map)
+             .bindPopup("Selected Location")
+             .openPopup();
+    saveButton.disabled = false; // Enable the button
+    updateStatus("Location selected. Click 'Save Location' to save.", "info");
+  });
+
+  // Toggle Table Visibility
+ const trapezoid = document.getElementById('trapezoid');
+const tableContainer = document.getElementById('tableContainer');
+
+function adjustTrapezoidPosition() {
+  const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
+  const offset = -22; // Adjust this value to lower the trapezoid
+  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
+}
+// Add event listener to adjust position when the table is toggled
+trapezoid.addEventListener('click', () => {
+  if (tableContainer.style.display === 'none') {
+    tableContainer.style.display = 'block'; // Show the table
+    adjustTrapezoidPosition(); // Adjust trapezoid position
+  } else {
+    tableContainer.style.display = 'none'; // Hide the table
+    trapezoid.style.bottom = '0'; // Reset trapezoid position
+  }
+});
+
+
+// Adjust position on page load
+adjustTrapezoidPosition();
+
+  // Load Members from Firestore
+  const tableBody = document.querySelector('#tableContainer tbody');
+
+  async function loadMembers() {
+    tableBody.innerHTML = '';
+    const querySnapshot = await getDocs(collection(db, 'Dashboard'));
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${data.fullName}</td>
+        <td>${data.position}</td>
+        <td>${data.status === 'Active' ? 'Active' : 'Off-Duty'}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  loadMembers();
+
+  // Update Status Message
+  function updateStatus(message, type) {
+    statusElement.textContent = message;
+    statusElement.className = `status ${type}`;
+  }
+</script>
 </body>
 </html>

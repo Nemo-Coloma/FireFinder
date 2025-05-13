@@ -237,9 +237,9 @@ createAccountModal.addEventListener('click', (event) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    if (email === 'adminfdp@gmail.com' && password === '123456') {
-      // Redirect to admin.html if credentials match
-      window.location.href = 'admin.html';
+if (email === 'adminfdp@gmail.com' && password === '123456') {
+      // Redirect to Admin.html if credentials match (fix case sensitivity)
+      window.location.href = 'Admin.html';
     } else {
       // Show error message for invalid credentials
       let errorMsg = loginForm.querySelector('.error-message');

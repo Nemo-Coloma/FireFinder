@@ -106,10 +106,10 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
- const barrettoBFPLatLng = L.latLng(14.8281, 120.2615);
-L.marker(barrettoBFPLatLng).addTo(map)
-  .bindPopup('Barretto BFP')
-  .openPopup();;
+  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+  L.marker(gordonCollegeLatLng).addTo(map)
+    .bindPopup('Gordon College')
+    .openPopup();
 
   let selectedLocation = null; // This will now store the location from Firebase
   let marker = null; // Marker for the location from Firebase
@@ -135,7 +135,7 @@ L.marker(barrettoBFPLatLng).addTo(map)
 
       selectedLocation = newLocation; // Update selectedLocation
 
-      updateStatus(`Latest reported location received: (${newLocation.lat}, ${newLocation.lng})`, "info");
+      updateStatus(Latest reported location received: (${newLocation.lat}, ${newLocation.lng}), "info");
 
       // Add routing from Gordon College to the new reported location
       addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, newLocation.lat, newLocation.lng);
@@ -167,7 +167,7 @@ const tableContainer = document.getElementById('tableContainer');
 function adjustTrapezoidPosition() {
   const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
   const offset = -22; // Adjust this value to lower the trapezoid
-  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
+  trapezoid.style.bottom = ${tableHeight + offset}px; // Set the trapezoid's bottom position with offset
 }
 // Add event listener to adjust position when the table is toggled
 trapezoid.addEventListener('click', () => {
@@ -208,7 +208,7 @@ adjustTrapezoidPosition();
   // Update Status Message
   function updateStatus(message, type) {
     statusElement.textContent = message;
-    statusElement.className = `status ${type}`;
+    statusElement.className = status ${type};
   }
 
    // Add Routing Functionality

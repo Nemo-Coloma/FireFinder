@@ -295,7 +295,7 @@ margin-bottom: 20px;
     /* Adjust map overlay button */
     .map-overlay-button {
         height: 70px;
-        bottom: 80px;
+        bottom: 100px;
         right: 20px;
         font-size: 12px;
         padding: 5px 8px;

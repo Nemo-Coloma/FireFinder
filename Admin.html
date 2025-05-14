@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,46 +130,32 @@
 
       // Add new marker at the received location
       marker = L.marker(newLocation).addTo(map)
-         .bindPopup("Reported Location") // Changed popup text
-         .openPopup();
+               .bindPopup("Reported Location") // Changed popup text
+               .openPopup();
 
-selectedLocation = newLocation; // Update selectedLocation
+      selectedLocation = newLocation; // Update selectedLocation
 
-updateStatus(`Latest reported location received: (${newLocation.lat}, ${newLocation.lng})`, "info");
+      updateStatus(`Latest reported location received: (${newLocation.lat}, ${newLocation.lng})`, "info");
 
-// Add routing from Gordon College to the new reported location
-addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, newLocation.lat, newLocation.lng);
+      // Add routing from Gordon College to the new reported location
+      addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, newLocation.lat, newLocation.lng);
 
-// Optionally, center the map on the new location
-map.setView(newLocation, map.getZoom());
-
+      // Optionally, center the map on the new location
+      map.setView(newLocation, map.getZoom());
 
     } else {
-  // Handle case where there is no location data (e.g., initially empty or unavailable)
-
-  // Remove existing marker if present
-  if (marker) {
-    map.removeLayer(marker);
-    marker = null;
-  }
-
-  // Remove existing route control if present
-  if (routeControl) {
-    map.removeControl(routeControl);
-    routeControl = null;
-  }
-
-  // Clear selected location
-  selectedLocation = null;
-
-  // Display status message to the user
-  if (typeof updateStatus === "function") {
-    updateStatus("No reported location available.", "info");
-  } else {
-    console.warn("updateStatus function is not defined.");
-  }
-}
-
+      // Handle case where there is no location data (e.g., initially empty)
+      if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+      }
+      if (routeControl) {
+          map.removeControl(routeControl);
+          routeControl = null;
+      }
+      selectedLocation = null;
+      updateStatus("No reported location available.", "info");
+    }
   });
   // --- End Realtime Location Sync ---
 
@@ -182,7 +167,7 @@ const tableContainer = document.getElementById('tableContainer');
 function adjustTrapezoidPosition() {
   const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
   const offset = -22; // Adjust this value to lower the trapezoid
-  trapezoid.style.bottom = '${tableHeight + offset}px'; // Set the trapezoid's bottom position with offset
+  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
 }
 // Add event listener to adjust position when the table is toggled
 trapezoid.addEventListener('click', () => {
@@ -223,7 +208,7 @@ adjustTrapezoidPosition();
   // Update Status Message
   function updateStatus(message, type) {
     statusElement.textContent = message;
-    statusElement.className = 'status ${type}';
+    statusElement.className = `status ${type}`;
   }
 
    // Add Routing Functionality

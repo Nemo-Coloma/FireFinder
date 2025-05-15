@@ -89,9 +89,9 @@
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(({ Users }) => {
-        return user.sendEmailVerification().then(() => {
+        return User.sendEmailVerification().then(() => {
           // Save user data in Firestore
-          return db.collection('Users').doc(user.uid).set({
+          return db.collection('Users').doc(User.uid).set({
             firstName,
             lastName,
             email,

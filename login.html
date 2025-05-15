@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Simulated 2FA Login</title>
+  <title>Simulated 2FA Create Account</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
@@ -41,11 +41,11 @@
 </head>
 <body>
 
-<h2>Login</h2>
-<div id="login-section">
+<h2>Create Account</h2>
+<div id="signup-section">
   <input type="email" id="email" placeholder="Email" required />
   <input type="password" id="password" placeholder="Password" required />
-  <button id="login-btn">Login</button>
+  <button id="signup-btn">Create Account</button>
 </div>
 
 <div id="phone-section">
@@ -79,7 +79,7 @@
   const auth = firebase.auth();
 
   // Elements
-  const loginSection = document.getElementById('login-section');
+  const signupSection = document.getElementById('signup-section');
   const phoneSection = document.getElementById('phone-section');
   const otpSection = document.getElementById('otp-section');
   const messageDiv = document.getElementById('message');
@@ -89,7 +89,7 @@
   const phoneInput = document.getElementById('phone');
   const otpInput = document.getElementById('otp');
 
-  const loginBtn = document.getElementById('login-btn');
+  const signupBtn = document.getElementById('signup-btn');
   const sendCodeBtn = document.getElementById('send-code-btn');
   const verifyCodeBtn = document.getElementById('verify-code-btn');
 
@@ -106,19 +106,20 @@
     }
   });
 
-  // Login with email/password first
-  loginBtn.addEventListener('click', () => {
+  // Create account with email/password
+  signupBtn.addEventListener('click', () => {
     const email = emailInput.value;
     const password = passwordInput.value;
     messageDiv.textContent = '';
-    auth.signInWithEmailAndPassword(email, password)
+
+    auth.createUserWithEmailAndPassword(email, password)
       .then(() => {
-        messageDiv.textContent = 'Login successful! Now verify your phone.';
-        loginSection.style.display = 'none';
+        messageDiv.textContent = 'Account created! Now verify your phone.';
+        signupSection.style.display = 'none';
         phoneSection.style.display = 'block';
       })
       .catch(err => {
-        messageDiv.textContent = 'Login failed: ' + err.message;
+        messageDiv.textContent = 'Signup failed: ' + err.message;
       });
   });
 
@@ -144,9 +145,9 @@
     messageDiv.textContent = '';
     confirmationResult.confirm(code)
       .then(() => {
-        messageDiv.textContent = 'Phone verification successful! You are fully logged in.';
+        messageDiv.textContent = 'Phone verification successful! You are fully registered.';
         otpSection.style.display = 'none';
-        // Here you can redirect the user or show logged-in content
+        // You can redirect or show dashboard here
       })
       .catch(err => {
         messageDiv.textContent = 'Invalid code: ' + err.message;

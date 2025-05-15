@@ -83,12 +83,12 @@
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !emailVerified || !password) {
       messageDiv.textContent = 'Please fill out all fields.';
       return;
     }
 
-    auth.createUserWithEmailAndPassword(email, password)
+    auth.createUserWithEmailAndPassword(emailVerified, password)
       .then(({ user }) => { // Corrected to destructure `user` properly
         return user.sendEmailVerification().then(() => {
           // Save user data in Firestore

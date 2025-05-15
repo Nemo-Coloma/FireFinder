@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Signup + Login (with Verification)</title>
   <style>
     body {
@@ -65,7 +65,6 @@
   <div id="message"></div>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -75,19 +74,25 @@
       appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // DOM Elements
     const messageDiv = document.getElementById('message');
     const signupSection = document.getElementById('signup-section');
     const loginSection = document.getElementById('login-section');
     const signupHeader = document.getElementById('signup-header');
     const loginHeader = document.getElementById('login-header');
 
-    // SIGNUP FUNCTION
+    // Show login form after signup (optional toggle)
+    function showLogin() {
+      signupSection.classList.add('hidden');
+      signupHeader.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      loginHeader.classList.remove('hidden');
+    }
+
+    // SIGNUP
     function handleSignup() {
       const firstName = document.getElementById('first-name').value.trim();
       const lastName = document.getElementById('last-name').value.trim();
@@ -105,17 +110,13 @@
             messageDiv.textContent = 'Account created! Please check your email and verify.';
             auth.signOut();
 
-            // Clear form
+            // Clear fields
             document.getElementById('first-name').value = '';
             document.getElementById('last-name').value = '';
             document.getElementById('signup-email').value = '';
             document.getElementById('signup-password').value = '';
 
-            // Switch to login view
-            signupSection.classList.add('hidden');
-            signupHeader.classList.add('hidden');
-            loginSection.classList.remove('hidden');
-            loginHeader.classList.remove('hidden');
+            showLogin();
           });
         })
         .catch(err => {
@@ -123,7 +124,7 @@
         });
     }
 
-    // LOGIN FUNCTION
+    // LOGIN
     function handleLogin() {
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
@@ -150,7 +151,7 @@
           }).then(() => {
             messageDiv.textContent = 'Login successful! Redirecting...';
             setTimeout(() => {
-              window.location.href = 'dashboard.html'; // Change this if needed
+              window.location.href = 'user.html'; // Redirect after login
             }, 2000);
           });
         })
@@ -159,10 +160,8 @@
         });
     }
 
-    // Attach Event Listeners
     document.getElementById('create-account-btn').addEventListener('click', handleSignup);
     document.getElementById('login-btn').addEventListener('click', handleLogin);
   </script>
-
 </body>
 </html>

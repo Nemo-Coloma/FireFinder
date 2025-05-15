@@ -67,6 +67,7 @@
     databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
   };
 
+  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -88,10 +89,10 @@
     }
 
     auth.createUserWithEmailAndPassword(email, password)
-      .then(({ Users }) => {
-        return User.sendEmailVerification().then(() => {
+      .then(({ user }) => { // Corrected to destructure `user` properly
+        return user.sendEmailVerification().then(() => {
           // Save user data in Firestore
-          return db.collection('Users').doc(User.uid).set({
+          return db.collection('Users').doc(user.uid).set({
             firstName,
             lastName,
             email,
@@ -112,4 +113,3 @@
 
 </body>
 </html>
-

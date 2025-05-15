@@ -1,159 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_circle_left" />
-    <style>
-       html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Kanit', sans-serif;
-    }
+  <meta charset="UTF-8">
+  <title>Firebase Phone Auth</title>
+  <style>
     body {
-        display: flex;
-        flex-direction: row;
-        width: 100vw;
-        height: 100vh;
-        background-color: black;
+      font-family: 'Kanit', sans-serif;
+      background-color: #111;
+      color: white;
+      padding: 40px;
     }
-  
-    .material-symbols-outlined {
-  font-variation-settings:
-  'FILL' 0,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
-        }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 300px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      cursor: pointer;
+      background-color: white;
+      color: black;
+    }
+    button:hover {
+      background-color: gray;
+      color: white;
+    }
+    #verification-code, #verify-code-button {
+      display: none;
+    }
+  </style>
 
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            width: 350px;
-            margin-left: 26rem;
-            margin-top: 20rem;
-        
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            
-        }
-        input {
-              font-family: kanit, sans-serif;
-            margin-bottom: 35px;
-            padding: 15px;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-        }
-        button {
-            margin-top: 30px;
-            padding: 10px;
-            font-size: 18px;
-            background-color: white;
-            color: black;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            width: 12rem;
-            margin-left: 4.5rem;
-            font-weight: 500;
-              font-family: kanit, sans-serif;
-        }
-        button:hover {
-            background-color: #686868;
-            color: aliceblue;
-            
-        }
-        .link {
-              font-family: kanit, sans-serif;
-            color: rgb(175, 175, 175);
-            cursor: pointer;
-            text-align: center;
-            text-decoration: underline;
-            margin-top: 10px;
-        }
-        .hidden {
-            display: none;
-        }
-        h2{
-            display: flex;
-            color: white;
-            font-family: kanit, sans-serif;
-            font-weight: 500;
-            margin-left: 5rem;
-            font-size: 4rem;
-            margin-bottom: 50px;
-            margin-top: -100px;
-        }
-        p{
-            color: white;
-            margin-top: 4rem;
-        }
-    </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"></script>
 </head>
 <body>
-    <img src="new logo.png" alt="Logo">
-    <span class="material-symbols-outlined">
-arrow_circle_left
-</span>
-  
-    <div class="form-container">
-        <form id="login-form">
-            <h2>Sign In</h2>
-            <input type="email" id="login-email" placeholder="Enter your email" required>
-            <input type="password" id="login-password" placeholder="Enter your password" required>
-            <button type="submit">LOGIN</button>
-            <div class="link" id="show-create-account">Create Account</div>
-              <p>By signing in you agree <a>Terms of Service</a> and <a>Private Policy</a> as set out by the user agreement.</p>
 
-        </form>
+  <h2>Phone Number Authentication</h2>
 
-        <form id="create-account-form" class="hidden">
-            <h2>Create Account</h2>
-            <input type="text" id="first-name" placeholder="First Name" required>
-            <input type="text" id="last-name" placeholder="Last Name" required>
-            <input type="email" id="create-email" placeholder="Email" required>
-            <input type="tel" id="phone-number" placeholder="Phone Number" required>
-            <input type="password" id="create-password" placeholder="Password" required>
-            <input type="password" id="confirm-password" placeholder="Confirm Password" required>
-            <button type="submit">Sign In</button>
-            <div class="link" id="show-login">Back to Login</div>
-        </form>
-    </div>
+  <input type="tel" id="phone-number" placeholder="+63XXXXXXXXXX" required><br>
+  <div id="recaptcha-container"></div>
+  <button id="send-code">Send Verification Code</button>
 
-    <script>
-        const loginForm = document.getElementById('login-form');
-        const createAccountForm = document.getElementById('create-account-form');
-        const showCreateAccountLink = document.getElementById('show-create-account');
-        const showLoginLink = document.getElementById('show-login');
+  <input type="text" id="verification-code" placeholder="Enter OTP Code">
+  <button id="verify-code-button">Verify Code</button>
 
-        showCreateAccountLink.addEventListener('click', () => {
-            loginForm.classList.add('hidden');
-            createAccountForm.classList.remove('hidden');
-        });
+  <script>
+  // ✅ Your Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+    authDomain: "firefinder-d5c0a.firebaseapp.com",
+    projectId: "firefinder-d5c0a",
+    storageBucket: "firefinder-d5c0a.appspot.com",
+    messagingSenderId: "221428549294",
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
+    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
+  };
 
-        showLoginLink.addEventListener('click', () => {
-            createAccountForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
+  // 🔥 Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Add login form submission logic here
-            alert('Login form submitted');
-        });
+  // Setup and render reCAPTCHA
+  let recaptchaVerifier;
+  window.onload = () => {
+    recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+      size: 'normal',
+      callback: (response) => {
+        console.log('reCAPTCHA solved');
+      },
+      'expired-callback': () => {
+        alert('reCAPTCHA expired. Please reload the page.');
+      }
+    });
+    recaptchaVerifier.render(); // Required!
+  };
 
-        createAccountForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Add create account form submission logic here
-            alert('Create account form submitted');
-        });
-    </script>
+  // Send Code
+  document.getElementById('send-code').addEventListener('click', function () {
+    const phoneNumber = document.getElementById('phone-number').value;
+    auth.signInWithPhoneNumber(phoneNumber, recaptchaVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        alert('Verification code sent!');
+        document.getElementById('verification-code').style.display = 'block';
+        document.getElementById('verify-code-button').style.display = 'inline-block';
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Error: " + error.message);
+      });
+  });
+</script>
+
+
 </body>
 </html>

@@ -1,102 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Create Account + Email Verification</title>
-  <style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_circle_left" />
+    <style>
+       html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Kanit', sans-serif;
+    }
     body {
-      font-family: 'Kanit', sans-serif;
-      background: #111;
-      color: white;
-      padding: 20px;
-      max-width: 400px;
-      margin: auto;
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-    }
-    button {
-      cursor: pointer;
-      background: white;
-      color: black;
-      font-weight: bold;
-    }
-    button:hover {
-      background: gray;
-      color: white;
-    }
-    #message {
-      margin-top: 15px;
-      min-height: 24px;
-    }
-  </style>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
-</head>
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            width: 350px;
+            margin-left: 25rem;
+            margin-top: 20rem;
+        
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            
+        }
+        input {
+             background: #242424;
+            background: radial-gradient(circle,rgba(36, 36, 36, 1) 0%, rgb(49, 49, 49) 90%);
+            font-family: kanit, sans-serif;
+            margin-bottom: 35px;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        button {
+            margin-top: 30px;
+            padding: 10px;
+            font-size: 18px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            width: 8rem;
+            margin-left: 7rem;
+            font-weight: 500;
+              font-family: kanit, sans-serif;
+        }
+        button:hover {
+            background-color: #686868;
+            color: aliceblue;
+            
+        }
+        .link {
+              font-family: kanit, sans-serif;
+            color: rgb(175, 175, 175);
+            cursor: pointer;
+            text-align: center;
+            text-decoration: underline;
+            margin-top: 10px;
+            white-space: nowrap;
+        }
+        .hidden {
+            display: none;
+        }
+        h2{
+            display: flex;
+            color: white;
+            font-family: kanit, sans-serif;
+            font-weight: 500;
+            margin-left: 5rem;
+            font-size: 4rem;
+            margin-bottom: 50px;
+            margin-top: -100px;
+        }
+        p{
+            color: white;
+            margin-top: 4rem;
+        }
+    </style>
+    
 <body>
+    <img src="new logo.png" alt="Logo">
+    <span class="material-symbols-outlined hidden" id="arrow-button">
+        arrow_circle_left
+</span>
+  
+    <div class="form-container">
+        <form id="login-form">
+            <h2>Sign In</h2>
+            <input type="email" id="login-email" placeholder="Enter your email" required>
+            <input type="password" id="login-password" placeholder="Enter your password" required>
+            <button type="submit">LOGIN</button>
+           <a href="create.html"> <div class="link" id="show-create-account">Create Account</div></a>
+              <p>By signing in you agree <a>Terms of Service</a> and <a>Private Policy</a> as set out by the user agreement.</p>
 
-<h2>Create Account</h2>
+        </form>
 
-<div id="signup-section">
-  <input type="text" id="first-name" placeholder="First Name" required />
-  <input type="text" id="last-name" placeholder="Last Name" required />
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Password" required />
-  <button id="create-account-btn">Create Account</button>
-</div>
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const createAccountForm = document.getElementById('create-account-form');
+        const showCreateAccountLink = document.getElementById('show-create-account');
+        const showLoginLink = document.getElementById('show-login');
 
-<div id="message"></div>
-
-<script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
-    authDomain: "firefinder-d5c0a.firebaseapp.com",
-    projectId: "firefinder-d5c0a",
-    storageBucket: "firefinder-d5c0a.appspot.com",
-    messagingSenderId: "221428549294",
-    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
-  };
-
-  // Init Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  const createAccountBtn = document.getElementById('create-account-btn');
-  const messageDiv = document.getElementById('message');
-
-  createAccountBtn.addEventListener('click', () => {
-    const firstName = document.getElementById('first-name').value.trim();
-    const lastName = document.getElementById('last-name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    if (!firstName || !lastName || !email || !password) {
-      messageDiv.textContent = 'Please fill out all fields.';
-      return;
-    }
-
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(({ user }) => {
-        return user.sendEmailVerification().then(() => {
-          messageDiv.textContent = 'Verification email sent. Please check your inbox.';
-          return auth.signOut();
+        showCreateAccountLink.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            createAccountForm.classList.remove('hidden');
+            document.getElementById('arrow-button').classList.remove('hidden');
         });
-      })
-      .catch(err => {
-        messageDiv.textContent = 'Error: ' + err.message;
-      });
-  });
-</script>
 
+        showLoginLink.addEventListener('click', () => {
+            createAccountForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            document.getElementById('arrow-button').classList.add('hidden');
+        });
+
+        document.getElementById('arrow-button').addEventListener('click', () => {
+            createAccountForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            document.getElementById('arrow-button').classList.add('hidden');
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add login form submission logic here
+            alert('Login form submitted');
+        });
+
+        createAccountForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add create account form submission logic here
+            alert('Create account form submitted');
+        });
+    </script>
 </body>
 </html>

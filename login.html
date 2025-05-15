@@ -36,10 +36,10 @@
     }
   </style>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js"></script>
+  <!-- Firebase SDKs (Compat version for use without modules) -->
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -83,15 +83,14 @@
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    if (!firstName || !lastName || !emailVerified || !password) {
+    if (!firstName || !lastName || !email || !password) {
       messageDiv.textContent = 'Please fill out all fields.';
       return;
     }
 
-    auth.createUserWithEmailAndPassword(emailVerified, password)
-      .then(({ user }) => { // Corrected to destructure `user` properly
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(({ user }) => {
         return user.sendEmailVerification().then(() => {
-          // Save user data in Firestore
           return db.collection('Users').doc(user.uid).set({
             firstName,
             lastName,
@@ -100,7 +99,7 @@
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }).then(() => {
-          messageDiv.textContent = 'Account created! A verification email has been sent.';
+          messageDiv.textContent = 'Account created! A verification email has been sent. Please check your inbox.';
           auth.signOut(); // Sign out until email is verified
         });
       })

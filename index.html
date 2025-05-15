@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+        <style>
+            html, body {
+                height: 105%;
+                margin: 0;
+            }
+            body {
+                background-color: #000; /* optional, to avoid white space */
+                overflow: hidden;
+            }
+            img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                display: block;
+            }
+            button{
+                font-family: kanit, sans-serif;
+                justify-content: center;
+                align-items: center;
+                padding:10px 50px; 
+                border:2px solid #fff; 
+                background:transparent; 
+                color:#fff; 
+                cursor:pointer; 
+                user-select:none; 
+                font-size:25px; 
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                z-index: 2;
+                margin-left: 68rem;
+                margin-top: 45rem;
+            }
+            button:hover{
+                color: black;
+                background-color: white;
+                transition: ease-out 0.2s;
+            }
+        </style>
+    </head>
+    <body>
+        <img src="front.png" alt="Front Image">
+        <a href="login.html">
+        <button>Let's Go!</button>
+        </a>
+    </body>
+</html>

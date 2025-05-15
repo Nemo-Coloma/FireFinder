@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_circle_left" />
+    <style>
+       html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Kanit', sans-serif;
+    }
+    body {
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+    }
+  
+    .material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            width: 350px;
+            margin-left: 26rem;
+            margin-top: 20rem;
+        
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            
+        }
+        input {
+              font-family: kanit, sans-serif;
+            margin-bottom: 35px;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 30px;
+            padding: 10px;
+            font-size: 18px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            width: 12rem;
+            margin-left: 4.5rem;
+            font-weight: 500;
+              font-family: kanit, sans-serif;
+        }
+        button:hover {
+            background-color: #686868;
+            color: aliceblue;
+            
+        }
+        .link {
+              font-family: kanit, sans-serif;
+            color: rgb(175, 175, 175);
+            cursor: pointer;
+            text-align: center;
+            text-decoration: underline;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        h2{
+            display: flex;
+            color: white;
+            font-family: kanit, sans-serif;
+            font-weight: 500;
+            margin-left: 5rem;
+            font-size: 4rem;
+            margin-bottom: 50px;
+            margin-top: -100px;
+        }
+        p{
+            color: white;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <img src="new logo.png" alt="Logo">
+    <span class="material-symbols-outlined">
+arrow_circle_left
+</span>
+  
+    <div class="form-container">
+        <form id="login-form">
+            <h2>Sign In</h2>
+            <input type="email" id="login-email" placeholder="Enter your email" required>
+            <input type="password" id="login-password" placeholder="Enter your password" required>
+            <button type="submit">LOGIN</button>
+            <div class="link" id="show-create-account">Create Account</div>
+              <p>By signing in you agree <a>Terms of Service</a> and <a>Private Policy</a> as set out by the user agreement.</p>
+
+        </form>
+
+        <form id="create-account-form" class="hidden">
+            <h2>Create Account</h2>
+            <input type="text" id="first-name" placeholder="First Name" required>
+            <input type="text" id="last-name" placeholder="Last Name" required>
+            <input type="email" id="create-email" placeholder="Email" required>
+            <input type="tel" id="phone-number" placeholder="Phone Number" required>
+            <input type="password" id="create-password" placeholder="Password" required>
+            <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            <button type="submit">Sign In</button>
+            <div class="link" id="show-login">Back to Login</div>
+        </form>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const createAccountForm = document.getElementById('create-account-form');
+        const showCreateAccountLink = document.getElementById('show-create-account');
+        const showLoginLink = document.getElementById('show-login');
+
+        showCreateAccountLink.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            createAccountForm.classList.remove('hidden');
+        });
+
+        showLoginLink.addEventListener('click', () => {
+            createAccountForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add login form submission logic here
+            alert('Login form submitted');
+        });
+
+        createAccountForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add create account form submission logic here
+            alert('Create account form submitted');
+        });
+    </script>
+</body>
+</html>

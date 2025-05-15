@@ -1,0 +1,310 @@
+
+body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    font-family: kanit, sans-serif;
+    overflow: hidden; /* Prevent scrollbars */
+}
+.rectangle {
+    height: 70px;
+    width: 100%;
+    background: linear-gradient(180deg, #ff0e0e, #3b0909); /* Gradient from dark gray to light gray */
+    text-align: center;
+    padding-top: 10px; /* Add top margin for the text */
+    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    font-weight: 500px;
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+}
+.rectangle img {
+    height: 45px; /* Adjust logo size */
+    position: absolute; /* Position the logo absolutely */
+    left: 40px; /* Add space from the left edge */
+    border-radius: 50%;
+    
+}
+.rectangle img:nth-child(2) {
+    margin-left: 75px; /* Add space between the two logos */
+}
+.rectangle img:nth-child(3) {
+    margin-left: 91%; /* Add space between the two logos */
+}
+
+
+
+.login-modal {
+display: none; /* Hidden by default */
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+z-index: 1000;
+justify-content: center; /* Center horizontally */
+align-items: center; /* Center vertically */
+}
+
+/* Modal content */
+.login-content {
+
+background-color: #ffffff;
+color: #000000;
+font-size: 20px;
+padding: 20px;
+border-radius: 25px;
+width: 400px;
+height: 450px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+text-align: center;
+position: relative;
+}
+
+.login-content h2 {
+font-family: kanit, sans-serif; /* Match the font of "Civilian" */
+margin-bottom: 20px;
+}
+
+.login-content label {
+    display: block;
+    margin: 5px 0 px;
+    text-align: left;
+}
+
+.login-content input {
+    width: 60%;
+    padding: 15px;
+    margin-bottom: 45px;
+    border: none; /* Remove the border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow */
+    border-radius: 10px; /* Keep the rounded corners */
+    outline: none; /* Remove the focus outline */
+}
+
+.login-content button {
+    width: 60%;
+    padding: 15px;
+    background-color: #bb0000;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.login-content button:hover {
+    background-color: #770000;
+}
+
+.create-account-link:hover {
+    text-decoration: underline;
+}
+/* Close button */
+.close-btn {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.create-account-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    z-index: 1000;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.create-account-content {
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 20px;
+    padding: 30px;
+    border-radius: 25px;
+    width: 400px;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+}
+
+.create-account-content h2 {
+    margin-bottom: 20px;
+}
+
+.create-account-content input {
+    width: 80%;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    outline: none;
+}
+
+.create-account-content button {
+    width: 80%;
+    padding: 10px;
+    background-color: #bb0000;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.create-account-content button:hover {
+    background-color: #770000;
+}
+
+.create-account-content .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+ .map-container {
+    position: relative;
+    height: calc(100vh - 70px); /* Adjust height to account for the rectangle */
+    display: flex;
+    flex-direction: column;
+}
+
+#map {
+    flex: 1;
+    height: 100%;
+    border-radius: 10px;
+    z-index: 0; /* Ensure the map stays below the rectangle */
+}
+
+    .map-overlay-button {
+    height: 90px;
+    position: absolute;
+    bottom: 30px; /* Adjust the distance from the bottom */
+    right: 30px; /* Adjust the distance from the right */
+    z-index: 1000; /* Ensure it appears above the map */
+    padding: 5px 10px;
+    background-color: #f40606;
+    color: white;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0.8, 0.8);
+    font-weight: 1000;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+
+.map-overlay-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.map-overlay-button:hover {
+    background-color: #b80909; /* Slightly darker red on hover */
+    transform: scale(1.1); /* Slightly enlarge the button */
+    box-shadow: 0 12px 12px rgba(0, 0, 0, 0.9); /* Enhance shadow on hover */
+}
+    .status {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+    }
+
+    .status.success {
+      color: green;
+    }
+
+    .status.error {
+      color: red;
+    }
+
+    .status.info {
+      color: blue;
+    }
+
+
+
+    @media (max-width: 768px) {
+    /* Adjust the rectangle height and font size */
+    .rectangle {
+        height: 50px;
+        font-size: 20px;
+        padding-top: 10px;
+    }
+
+    .rectangle img {
+        height: 25px; /* Reduce logo size */
+        left: 10px; /* Adjust spacing */
+    }
+
+    .rectangle img:nth-child(2) {
+        margin-left: 30px; /* Adjust spacing between logos */
+    }
+
+    .rectangle img:nth-child(3) {
+        margin-left: auto; /* Align to the right */
+        right: 10px;
+        position: absolute;
+        height: 5px;
+        top: -2px;
+    }
+
+    /* Adjust modal sizes */
+    .login-content,
+    .create-account-content {
+        width: 70%; /* Use most of the screen width */
+        height: auto; /* Allow height to adjust dynamically */
+        padding: 15px;
+    }
+
+    .login-content input,
+    .create-account-content input {
+        width: 70%; /* Full width for inputs */
+        padding: 10px;
+    }
+
+    .login-content button,
+    .create-account-content button {
+        width: 90%; /* Full width for buttons */
+        padding: 10px;
+    }
+
+    /* Adjust map container */
+    .map-container {
+        height: calc(100vh - 50px); /* Adjust height for smaller rectangle */
+    }
+
+    #map {
+        border-radius: 5px; /* Reduce border radius */
+    }
+
+    /* Adjust map overlay button */
+    .map-overlay-button {
+        height: 70px;
+        bottom: 20px;
+        right: 20px;
+        font-size: 12px;
+        padding: 5px 8px;
+        border-radius: 110px;
+    }
+
+    /* Adjust status message */
+    .status {
+        font-size: 12px;
+        padding: 8px;
+    }
+}

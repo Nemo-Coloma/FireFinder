@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Simulated 2FA Create Account</title>
+  <title>Create Account + Phone Verification + Firestore</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
@@ -33,18 +33,24 @@
     #phone-section, #otp-section {
       display: none;
     }
+    #message {
+      margin-top: 15px;
+      min-height: 24px;
+      font-weight: bold;
+    }
   </style>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 
 <h2>Create Account</h2>
 <div id="signup-section">
   <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Password" required />
+  <input type="password" id="password" placeholder="Password (min 6 chars)" required minlength="6" />
   <button id="signup-btn">Create Account</button>
 </div>
 
@@ -64,7 +70,6 @@
 <div id="message"></div>
 
 <script>
-  // Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -77,8 +82,8 @@
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db = firebase.firestore();
 
-  // Elements
   const signupSection = document.getElementById('signup-section');
   const phoneSection = document.getElementById('phone-section');
   const otpSection = document.getElementById('otp-section');
@@ -94,39 +99,61 @@
   const verifyCodeBtn = document.getElementById('verify-code-btn');
 
   let confirmationResult;
+  let createdUserUid = null;
+  let createdUserEmail = null;
 
   // Setup reCAPTCHA
-  let recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'normal',
-    callback: () => {
-      console.log('reCAPTCHA solved');
-    },
-    'expired-callback': () => {
-      messageDiv.textContent = 'reCAPTCHA expired, please verify again.';
-    }
-  });
+  let recaptchaVerifier;
+  window.onload = () => {
+    recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+      size: 'normal',
+      callback: () => {
+        console.log('reCAPTCHA solved');
+      },
+      'expired-callback': () => {
+        messageDiv.textContent = 'reCAPTCHA expired, please reload the page.';
+      }
+    });
+    recaptchaVerifier.render().then(widgetId => {
+      window.recaptchaWidgetId = widgetId;
+    });
+  };
 
   // Create account with email/password
   signupBtn.addEventListener('click', () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
     messageDiv.textContent = '';
+    if (!email || !password) {
+      messageDiv.textContent = 'Please enter valid email and password.';
+      return;
+    }
 
     auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
+      .then((userCredential) => {
+        createdUserUid = userCredential.user.uid;
+        createdUserEmail = userCredential.user.email;
         messageDiv.textContent = 'Account created! Now verify your phone.';
         signupSection.style.display = 'none';
         phoneSection.style.display = 'block';
       })
-      .catch(err => {
-        messageDiv.textContent = 'Signup failed: ' + err.message;
+      .catch((error) => {
+        console.error('Signup error:', error);
+        messageDiv.textContent = 'Signup failed: ' + error.message;
       });
   });
 
   // Send verification code via phone
   sendCodeBtn.addEventListener('click', () => {
-    const phoneNumber = phoneInput.value;
+    const phoneNumber = phoneInput.value.trim();
     messageDiv.textContent = '';
+
+    if (!phoneNumber) {
+      messageDiv.textContent = 'Please enter your phone number.';
+      return;
+    }
+
     auth.signInWithPhoneNumber(phoneNumber, recaptchaVerifier)
       .then((result) => {
         confirmationResult = result;
@@ -134,23 +161,42 @@
         phoneSection.style.display = 'none';
         otpSection.style.display = 'block';
       })
-      .catch(err => {
-        messageDiv.textContent = 'Error sending code: ' + err.message;
+      .catch((error) => {
+        console.error('Send code error:', error);
+        messageDiv.textContent = 'Error sending code: ' + error.message;
       });
   });
 
-  // Verify the OTP code
+  // Verify the OTP code and save data to Firestore
   verifyCodeBtn.addEventListener('click', () => {
-    const code = otpInput.value;
+    const code = otpInput.value.trim();
     messageDiv.textContent = '';
+
+    if (!code) {
+      messageDiv.textContent = 'Please enter the verification code.';
+      return;
+    }
+
     confirmationResult.confirm(code)
-      .then(() => {
-        messageDiv.textContent = 'Phone verification successful! You are fully registered.';
-        otpSection.style.display = 'none';
-        // You can redirect or show dashboard here
+      .then((result) => {
+        // Phone verified and user signed in with phone auth
+        const phoneUser = result.user;
+        const phoneNumber = phoneUser.phoneNumber;
+
+        // Save user info to Firestore
+        return db.collection('Users').doc(createdUserUid).set({
+          email: createdUserEmail,
+          phone: phoneNumber,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          messageDiv.textContent = 'Phone verified and user saved in Firestore!';
+          otpSection.style.display = 'none';
+          // You can redirect or do more here
+        });
       })
-      .catch(err => {
-        messageDiv.textContent = 'Invalid code: ' + err.message;
+      .catch((error) => {
+        console.error('Verify code error:', error);
+        messageDiv.textContent = 'Invalid code: ' + error.message;
       });
   });
 </script>

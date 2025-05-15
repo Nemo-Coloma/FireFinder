@@ -91,7 +91,7 @@
       .then(({ user }) => {
         return user.sendEmailVerification().then(() => {
           // Save user data in Firestore
-          return db.collection('users').doc(user.uid).set({
+          return db.collection('Users').doc(user.uid).set({
             firstName,
             lastName,
             email,

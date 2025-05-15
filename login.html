@@ -1,33 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Firebase Phone Auth</title>
+  <meta charset="UTF-8" />
+  <title>Simulated 2FA Login</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
-      background-color: #111;
+      background: #111;
       color: white;
-      padding: 40px;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
     }
     input, button {
-      padding: 10px;
+      width: 100%;
+      padding: 12px;
       margin: 10px 0;
-      width: 300px;
       font-size: 16px;
       border-radius: 5px;
       border: none;
     }
     button {
       cursor: pointer;
-      background-color: white;
+      background: white;
       color: black;
+      font-weight: bold;
     }
     button:hover {
-      background-color: gray;
+      background: gray;
       color: white;
     }
-    #verification-code, #verify-code-button {
+    #phone-section, #otp-section {
       display: none;
     }
   </style>
@@ -38,17 +41,30 @@
 </head>
 <body>
 
-  <h2>Phone Number Authentication</h2>
+<h2>Login</h2>
+<div id="login-section">
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <button id="login-btn">Login</button>
+</div>
 
-  <input type="tel" id="phone-number" placeholder="+63XXXXXXXXXX" required><br>
+<div id="phone-section">
+  <h2>Verify Phone</h2>
   <div id="recaptcha-container"></div>
-  <button id="send-code">Send Verification Code</button>
+  <input type="tel" id="phone" placeholder="+63xxxxxxxxxx" />
+  <button id="send-code-btn">Send Verification Code</button>
+</div>
 
-  <input type="text" id="verification-code" placeholder="Enter OTP Code">
-  <button id="verify-code-button">Verify Code</button>
+<div id="otp-section">
+  <h2>Enter OTP</h2>
+  <input type="text" id="otp" placeholder="Enter code" />
+  <button id="verify-code-btn">Verify Code</button>
+</div>
 
-  <script>
-  // ✅ Your Firebase Config
+<div id="message"></div>
+
+<script>
+  // Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -59,42 +75,85 @@
     databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
   };
 
-  // 🔥 Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  // Setup and render reCAPTCHA
-  let recaptchaVerifier;
-  window.onload = () => {
-    recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-      size: 'normal',
-      callback: (response) => {
-        console.log('reCAPTCHA solved');
-      },
-      'expired-callback': () => {
-        alert('reCAPTCHA expired. Please reload the page.');
-      }
-    });
-    recaptchaVerifier.render(); // Required!
-  };
+  // Elements
+  const loginSection = document.getElementById('login-section');
+  const phoneSection = document.getElementById('phone-section');
+  const otpSection = document.getElementById('otp-section');
+  const messageDiv = document.getElementById('message');
 
-  // Send Code
-  document.getElementById('send-code').addEventListener('click', function () {
-    const phoneNumber = document.getElementById('phone-number').value;
-    auth.signInWithPhoneNumber(phoneNumber, recaptchaVerifier)
-      .then((confirmationResult) => {
-        window.confirmationResult = confirmationResult;
-        alert('Verification code sent!');
-        document.getElementById('verification-code').style.display = 'block';
-        document.getElementById('verify-code-button').style.display = 'inline-block';
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const phoneInput = document.getElementById('phone');
+  const otpInput = document.getElementById('otp');
+
+  const loginBtn = document.getElementById('login-btn');
+  const sendCodeBtn = document.getElementById('send-code-btn');
+  const verifyCodeBtn = document.getElementById('verify-code-btn');
+
+  let confirmationResult;
+
+  // Setup reCAPTCHA
+  let recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+    size: 'normal',
+    callback: () => {
+      console.log('reCAPTCHA solved');
+    },
+    'expired-callback': () => {
+      messageDiv.textContent = 'reCAPTCHA expired, please verify again.';
+    }
+  });
+
+  // Login with email/password first
+  loginBtn.addEventListener('click', () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    messageDiv.textContent = '';
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        messageDiv.textContent = 'Login successful! Now verify your phone.';
+        loginSection.style.display = 'none';
+        phoneSection.style.display = 'block';
       })
-      .catch((error) => {
-        console.error(error);
-        alert("Error: " + error.message);
+      .catch(err => {
+        messageDiv.textContent = 'Login failed: ' + err.message;
+      });
+  });
+
+  // Send verification code via phone
+  sendCodeBtn.addEventListener('click', () => {
+    const phoneNumber = phoneInput.value;
+    messageDiv.textContent = '';
+    auth.signInWithPhoneNumber(phoneNumber, recaptchaVerifier)
+      .then((result) => {
+        confirmationResult = result;
+        messageDiv.textContent = 'Verification code sent!';
+        phoneSection.style.display = 'none';
+        otpSection.style.display = 'block';
+      })
+      .catch(err => {
+        messageDiv.textContent = 'Error sending code: ' + err.message;
+      });
+  });
+
+  // Verify the OTP code
+  verifyCodeBtn.addEventListener('click', () => {
+    const code = otpInput.value;
+    messageDiv.textContent = '';
+    confirmationResult.confirm(code)
+      .then(() => {
+        messageDiv.textContent = 'Phone verification successful! You are fully logged in.';
+        otpSection.style.display = 'none';
+        // Here you can redirect the user or show logged-in content
+      })
+      .catch(err => {
+        messageDiv.textContent = 'Invalid code: ' + err.message;
       });
   });
 </script>
 
-
 </body>
 </html>
+

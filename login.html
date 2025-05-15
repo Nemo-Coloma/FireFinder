@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Create Account + Phone Verification</title>
+  <title>Create Account + Email Verification</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
@@ -30,9 +30,6 @@
       background: gray;
       color: white;
     }
-    #phone-section, #otp-section {
-      display: none;
-    }
     #message {
       margin-top: 15px;
       min-height: 24px;
@@ -53,15 +50,7 @@
   <input type="text" id="last-name" placeholder="Last Name" required />
   <input type="email" id="email" placeholder="Email" required />
   <input type="password" id="password" placeholder="Password" required />
-  <input type="tel" id="phone" placeholder="+63xxxxxxxxxx" required />
-  <div id="recaptcha-container"></div>
   <button id="create-account-btn">Create Account</button>
-</div>
-
-<div id="otp-section">
-  <h3>Verify Phone</h3>
-  <input type="text" id="otp" placeholder="Enter verification code" />
-  <button id="verify-code-btn">Verify Code</button>
 </div>
 
 <div id="message"></div>
@@ -78,122 +67,49 @@
     databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // Elements
-  const signupSection = document.getElementById('signup-section');
-  const otpSection = document.getElementById('otp-section');
+  const createAccountBtn = document.getElementById('create-account-btn');
   const messageDiv = document.getElementById('message');
 
-  const firstNameInput = document.getElementById('first-name');
-  const lastNameInput = document.getElementById('last-name');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const phoneInput = document.getElementById('phone');
-  const otpInput = document.getElementById('otp');
-
-  const createAccountBtn = document.getElementById('create-account-btn');
-  const verifyCodeBtn = document.getElementById('verify-code-btn');
-
-  let confirmationResult;
-
-  // Setup reCAPTCHA
-  const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'normal',
-    callback: () => {
-      console.log('reCAPTCHA solved');
-    },
-    'expired-callback': () => {
-      messageDiv.textContent = 'reCAPTCHA expired, please verify again.';
-    }
-  });
-
-  recaptchaVerifier.render();
-
-  // Create account and send phone verification code
   createAccountBtn.addEventListener('click', () => {
     messageDiv.textContent = '';
-    const firstName = firstNameInput.value.trim();
-    const lastName = lastNameInput.value.trim();
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const phoneNumber = phoneInput.value.trim();
 
-    if (!firstName || !lastName || !email || !password || !phoneNumber) {
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!firstName || !lastName || !email || !password) {
       messageDiv.textContent = 'Please fill out all fields.';
       return;
     }
 
-    // Step 1: Create user with email/password
     auth.createUserWithEmailAndPassword(email, password)
       .then(({ user }) => {
-        messageDiv.textContent = 'Account created! Sending verification code to phone...';
-
-        // Optional: Save user info in Firestore (without phone for now)
-        return db.collection('users').doc(user.uid).set({
-          firstName,
-          lastName,
-          email,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => user);
-      })
-      .then(user => {
-        // Step 2: Send verification code to phone
-        return auth.signInWithPhoneNumber(phoneInput.value, recaptchaVerifier);
-      })
-      .then(result => {
-        confirmationResult = result;
-        messageDiv.textContent = 'Verification code sent! Please enter the code below.';
-        signupSection.style.display = 'none';
-        otpSection.style.display = 'block';
-      })
-      .catch(err => {
-        messageDiv.textContent = 'Error: ' + err.message;
-      });
-  });
-
-  // Verify the code and link phone number to current user
-  verifyCodeBtn.addEventListener('click', () => {
-    const code = otpInput.value.trim();
-    messageDiv.textContent = '';
-
-    if (!confirmationResult) {
-      messageDiv.textContent = 'No verification code sent.';
-      return;
-    }
-
-    confirmationResult.confirm(code)
-      .then((phoneCredential) => {
-        // Link phone credential to current user
-        const user = auth.currentUser;
-        if (!user) throw new Error('No logged-in user');
-
-        return user.linkWithCredential(phoneCredential);
-      })
-      .then(() => {
-        messageDiv.textContent = 'Phone verified and linked! Account setup complete.';
-
-        // Optionally update phone number in Firestore
-        const user = auth.currentUser;
-        if (user) {
-          return db.collection('users').doc(user.uid).update({
-            phoneNumber: phoneInput.value.trim(),
-            phoneVerifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+        return user.sendEmailVerification().then(() => {
+          // Save user data in Firestore
+          return db.collection('users').doc(user.uid).set({
+            firstName,
+            lastName,
+            email,
+            emailVerified: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-        }
-      })
-      .then(() => {
-        otpSection.style.display = 'none';
-        // Redirect or show logged-in UI here
+        }).then(() => {
+          messageDiv.textContent = 'Account created! A verification email has been sent.';
+          auth.signOut(); // Sign out until email is verified
+        });
       })
       .catch(err => {
-        messageDiv.textContent = 'Error verifying code: ' + err.message;
+        console.error(err);
+        messageDiv.textContent = 'Error: ' + err.message;
       });
   });
 </script>
 
 </body>
 </html>
+

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Create Account + Phone Verification + Firestore</title>
+  <title>Create Account + Phone Verification + Firestore (Link Phone)</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
@@ -70,6 +70,7 @@
 <div id="message"></div>
 
 <script>
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -98,9 +99,7 @@
   const sendCodeBtn = document.getElementById('send-code-btn');
   const verifyCodeBtn = document.getElementById('verify-code-btn');
 
-  let confirmationResult;
-  let createdUserUid = null;
-  let createdUserEmail = null;
+  let confirmationResult = null;
 
   // Setup reCAPTCHA
   let recaptchaVerifier;
@@ -108,18 +107,16 @@
     recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
       size: 'normal',
       callback: () => {
-        console.log('reCAPTCHA solved');
+        messageDiv.textContent = 'reCAPTCHA verified.';
       },
       'expired-callback': () => {
         messageDiv.textContent = 'reCAPTCHA expired, please reload the page.';
       }
     });
-    recaptchaVerifier.render().then(widgetId => {
-      window.recaptchaWidgetId = widgetId;
-    });
+    recaptchaVerifier.render();
   };
 
-  // Create account with email/password
+  // Create Account
   signupBtn.addEventListener('click', () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
@@ -132,9 +129,7 @@
 
     auth.createUserWithEmailAndPassword(email, password)
       .then((userCredential) => {
-        createdUserUid = userCredential.user.uid;
-        createdUserEmail = userCredential.user.email;
-        messageDiv.textContent = 'Account created! Now verify your phone.';
+        messageDiv.textContent = 'Account created! Please verify your phone number.';
         signupSection.style.display = 'none';
         phoneSection.style.display = 'block';
       })
@@ -144,7 +139,7 @@
       });
   });
 
-  // Send verification code via phone
+  // Send Phone Verification Code (link phone)
   sendCodeBtn.addEventListener('click', () => {
     const phoneNumber = phoneInput.value.trim();
     messageDiv.textContent = '';
@@ -154,9 +149,17 @@
       return;
     }
 
-    auth.signInWithPhoneNumber(phoneNumber, recaptchaVerifier)
-      .then((result) => {
-        confirmationResult = result;
+    const user = auth.currentUser;
+    if (!user) {
+      messageDiv.textContent = 'No logged in user. Please create account first.';
+      return;
+    }
+
+    const phoneProvider = new firebase.auth.PhoneAuthProvider();
+
+    phoneProvider.verifyPhoneNumber(phoneNumber, recaptchaVerifier)
+      .then((verificationId) => {
+        window.verificationId = verificationId;
         messageDiv.textContent = 'Verification code sent!';
         phoneSection.style.display = 'none';
         otpSection.style.display = 'block';
@@ -167,7 +170,7 @@
       });
   });
 
-  // Verify the OTP code and save data to Firestore
+  // Verify OTP and Link Phone Credential to User
   verifyCodeBtn.addEventListener('click', () => {
     const code = otpInput.value.trim();
     messageDiv.textContent = '';
@@ -177,26 +180,30 @@
       return;
     }
 
-    confirmationResult.confirm(code)
-      .then((result) => {
-        // Phone verified and user signed in with phone auth
-        const phoneUser = result.user;
-        const phoneNumber = phoneUser.phoneNumber;
+    const credential = firebase.auth.PhoneAuthProvider.credential(window.verificationId, code);
+    const user = auth.currentUser;
 
+    if (user) {
+      messageDiv.textContent = 'No logged in user.';
+      return;
+    }
+
+    ser.linkWithCredential(credential)
+      .then((usercred) => {
         // Save user info to Firestore
-        return db.collection('Users').doc(createdUserUid).set({
-          email: createdUserEmail,
-          phone: phoneNumber,
+        return db.collection('users').doc(user.uid).set({
+          email: user.email,
+          phone: user.phoneNumber,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          messageDiv.textContent = 'Phone verified and user saved in Firestore!';
-          otpSection.style.display = 'none';
-          // You can redirect or do more here
         });
       })
+      .then(() => {
+        messageDiv.textContent = 'Phone verified and account saved!';
+        otpSection.style.display = 'none';
+      })
       .catch((error) => {
-        console.error('Verify code error:', error);
-        messageDiv.textContent = 'Invalid code: ' + error.message;
+        console.error('Verification failed:', error);
+        messageDiv.textContent = 'Verification failed: ' + error.message;
       });
   });
 </script>

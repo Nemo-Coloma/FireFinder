@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Create Account + Phone Verification + Firestore (Link Phone)</title>
+  <title>Create Account + Phone Verification</title>
   <style>
     body {
       font-family: 'Kanit', sans-serif;
@@ -36,7 +36,6 @@
     #message {
       margin-top: 15px;
       min-height: 24px;
-      font-weight: bold;
     }
   </style>
 
@@ -48,29 +47,27 @@
 <body>
 
 <h2>Create Account</h2>
-<div id="signup-section">
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Password (min 6 chars)" required minlength="6" />
-  <button id="signup-btn">Create Account</button>
-</div>
 
-<div id="phone-section">
-  <h2>Verify Phone</h2>
+<div id="signup-section">
+  <input type="text" id="first-name" placeholder="First Name" required />
+  <input type="text" id="last-name" placeholder="Last Name" required />
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <input type="tel" id="phone" placeholder="+63xxxxxxxxxx" required />
   <div id="recaptcha-container"></div>
-  <input type="tel" id="phone" placeholder="+63xxxxxxxxxx" />
-  <button id="send-code-btn">Send Verification Code</button>
+  <button id="create-account-btn">Create Account</button>
 </div>
 
 <div id="otp-section">
-  <h2>Enter OTP</h2>
-  <input type="text" id="otp" placeholder="Enter code" />
+  <h3>Verify Phone</h3>
+  <input type="text" id="otp" placeholder="Enter verification code" />
   <button id="verify-code-btn">Verify Code</button>
 </div>
 
 <div id="message"></div>
 
 <script>
-  // Firebase Config
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -81,129 +78,119 @@
     databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
   };
 
+  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
+  // Elements
   const signupSection = document.getElementById('signup-section');
-  const phoneSection = document.getElementById('phone-section');
   const otpSection = document.getElementById('otp-section');
   const messageDiv = document.getElementById('message');
 
+  const firstNameInput = document.getElementById('first-name');
+  const lastNameInput = document.getElementById('last-name');
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
   const phoneInput = document.getElementById('phone');
   const otpInput = document.getElementById('otp');
 
-  const signupBtn = document.getElementById('signup-btn');
-  const sendCodeBtn = document.getElementById('send-code-btn');
+  const createAccountBtn = document.getElementById('create-account-btn');
   const verifyCodeBtn = document.getElementById('verify-code-btn');
 
-  let confirmationResult = null;
+  let confirmationResult;
 
   // Setup reCAPTCHA
-  let recaptchaVerifier;
-  window.onload = () => {
-    recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-      size: 'normal',
-      callback: () => {
-        messageDiv.textContent = 'reCAPTCHA verified.';
-      },
-      'expired-callback': () => {
-        messageDiv.textContent = 'reCAPTCHA expired, please reload the page.';
-      }
-    });
-    recaptchaVerifier.render();
-  };
-
-  // Create Account
-  signupBtn.addEventListener('click', () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-
-    messageDiv.textContent = '';
-    if (!email || !password) {
-      messageDiv.textContent = 'Please enter valid email and password.';
-      return;
+  const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+    size: 'normal',
+    callback: () => {
+      console.log('reCAPTCHA solved');
+    },
+    'expired-callback': () => {
+      messageDiv.textContent = 'reCAPTCHA expired, please verify again.';
     }
-
-    auth.createUserWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        messageDiv.textContent = 'Account created! Please verify your phone number.';
-        signupSection.style.display = 'none';
-        phoneSection.style.display = 'block';
-      })
-      .catch((error) => {
-        console.error('Signup error:', error);
-        messageDiv.textContent = 'Signup failed: ' + error.message;
-      });
   });
 
-  // Send Phone Verification Code (link phone)
-  sendCodeBtn.addEventListener('click', () => {
-    const phoneNumber = phoneInput.value.trim();
+  recaptchaVerifier.render();
+
+  // Create account and send phone verification code
+  createAccountBtn.addEventListener('click', () => {
     messageDiv.textContent = '';
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const phoneNumber = phoneInput.value.trim();
 
-    if (!phoneNumber) {
-      messageDiv.textContent = 'Please enter your phone number.';
+    if (!firstName || !lastName || !email || !password || !phoneNumber) {
+      messageDiv.textContent = 'Please fill out all fields.';
       return;
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      messageDiv.textContent = 'No logged in user. Please create account first.';
-      return;
-    }
+    // Step 1: Create user with email/password
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(({ user }) => {
+        messageDiv.textContent = 'Account created! Sending verification code to phone...';
 
-    const phoneProvider = new firebase.auth.PhoneAuthProvider();
-
-    phoneProvider.verifyPhoneNumber(phoneNumber, recaptchaVerifier)
-      .then((verificationId) => {
-        window.verificationId = verificationId;
-        messageDiv.textContent = 'Verification code sent!';
-        phoneSection.style.display = 'none';
+        // Optional: Save user info in Firestore (without phone for now)
+        return db.collection('users').doc(user.uid).set({
+          firstName,
+          lastName,
+          email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => user);
+      })
+      .then(user => {
+        // Step 2: Send verification code to phone
+        return auth.signInWithPhoneNumber(phoneInput.value, recaptchaVerifier);
+      })
+      .then(result => {
+        confirmationResult = result;
+        messageDiv.textContent = 'Verification code sent! Please enter the code below.';
+        signupSection.style.display = 'none';
         otpSection.style.display = 'block';
       })
-      .catch((error) => {
-        console.error('Send code error:', error);
-        messageDiv.textContent = 'Error sending code: ' + error.message;
+      .catch(err => {
+        messageDiv.textContent = 'Error: ' + err.message;
       });
   });
 
-  // Verify OTP and Link Phone Credential to User
+  // Verify the code and link phone number to current user
   verifyCodeBtn.addEventListener('click', () => {
     const code = otpInput.value.trim();
     messageDiv.textContent = '';
 
-    if (!code) {
-      messageDiv.textContent = 'Please enter the verification code.';
+    if (!confirmationResult) {
+      messageDiv.textContent = 'No verification code sent.';
       return;
     }
 
-    const credential = firebase.auth.PhoneAuthProvider.credential(window.verificationId, code);
-    const user = auth.currentUser;
+    confirmationResult.confirm(code)
+      .then((phoneCredential) => {
+        // Link phone credential to current user
+        const user = auth.currentUser;
+        if (!user) throw new Error('No logged-in user');
 
-    if (user) {
-      messageDiv.textContent = 'No logged in user.';
-      return;
-    }
-
-    ser.linkWithCredential(credential)
-      .then((usercred) => {
-        // Save user info to Firestore
-        return db.collection('users').doc(user.uid).set({
-          email: user.email,
-          phone: user.phoneNumber,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        return user.linkWithCredential(phoneCredential);
       })
       .then(() => {
-        messageDiv.textContent = 'Phone verified and account saved!';
-        otpSection.style.display = 'none';
+        messageDiv.textContent = 'Phone verified and linked! Account setup complete.';
+
+        // Optionally update phone number in Firestore
+        const user = auth.currentUser;
+        if (user) {
+          return db.collection('users').doc(user.uid).update({
+            phoneNumber: phoneInput.value.trim(),
+            phoneVerifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
       })
-      .catch((error) => {
-        console.error('Verification failed:', error);
-        messageDiv.textContent = 'Verification failed: ' + error.message;
+      .then(() => {
+        otpSection.style.display = 'none';
+        // Redirect or show logged-in UI here
+      })
+      .catch(err => {
+        messageDiv.textContent = 'Error verifying code: ' + err.message;
       });
   });
 </script>

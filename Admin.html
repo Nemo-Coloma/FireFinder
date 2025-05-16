@@ -3,88 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Location Picker with Route</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> <!-- Added Realtime Database script -->
+  <title>Multi-User Tracking</title>
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-  <!-- Routing and Geocoder -->
+  <!-- Leaflet Routing & Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
 
-  <link rel="stylesheet" href="styleadmin.css">
+  <style>
+    #map { height: 100vh; }
+    .status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 8px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
-  <div class="rectangle">
-    <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
-    <img src="Fire Dep Logo.jpg">
 
-    <div class="dropdown">
-      <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
-      <div class="dropdown-content">
-        <a href="Table.html">Crew</a>
-        <a href="report.html">Report</a>
-        <a href="index.html">Logout</a>
-      </div>
-    </div>
+<div id="map"></div>
+<div id="status" class="status">Waiting for data...</div>
 
-    <span>ADMIN</span>
-  </div>
-
-  <div class="map-container">
-    <!-- Trapezoid -->
-    <div id="trapezoid" class="trapezoid">UNITS</div>
-
-    <!-- Table Container -->
-  <div id="tableContainer" class="table-container" style="display: none;">
-  <div class="scrollable-table">
-    <table style="width: 100%; margin-left: 10rem;">
-      <thead>
-        <tr>
-          <th padding: 8px;>Name</th>
-          <th padding: 8px;>Position</th>
-          <th padding: 8px;>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 1</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 2</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 3</td>
-        </tr>
-        <tr>
-          <td>Row 2, Col 1</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 2</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 3</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-    <!-- Map -->
-    <div id="map"></div>
-
-    <!-- Status Message -->
-    <div id="status" class="status"></div>
-  </div>
-
-
- <script type="module">
+<script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-  import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
-  // Import Realtime Database module
   import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
 
-
+  // Firebase Configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -92,158 +45,80 @@
     storageBucket: "firefinder-d5c0a.appspot.com",
     messagingSenderId: "221428549294",
     appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
-    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com" // Added Realtime Database URL
+    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const realtimeDb = getDatabase(app); // Initialize Realtime Database
+  const db = getDatabase(app);
 
-  // Map Setup
-  const map = L.map('map').setView([14.832, 120.2820], 14.5);
+  // Map Initialization
+  const map = L.map('map').setView([14.832, 120.282], 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
   const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-  L.marker(gordonCollegeLatLng).addTo(map)
-    .bindPopup('Gordon College')
-    .openPopup();
+  L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
 
-  let selectedLocation = null; // This will now store the location from Firebase
-  let marker = null; // Marker for the location from Firebase
-  let routeControl = null;
+  // Green alert icon
+  const greenIcon = L.icon({
+    iconUrl: 'alert.png',
+    iconSize: [60, 60],
+    iconAnchor: [30, 60],
+    popupAnchor: [0, -60]
+  });
+
+  // Status update
   const statusElement = document.getElementById('status');
+  function updateStatus(msg, type = 'info') {
+    statusElement.textContent = msg;
+  }
 
-  // --- Realtime Location Sync ---
-  const currentLocationRef = ref(realtimeDb, 'currentLocation');
-  onValue(currentLocationRef, (snapshot) => {
-    const locationData = snapshot.val();
-    if (locationData) {
-      const newLocation = L.latLng(locationData.latitude, locationData.longitude);
+  // Refs to store markers/routes per user
+  const userMarkers = {};
+  const userRoutes = {};
 
-      // Remove previous marker if it exists
-      if (marker) {
-        map.removeLayer(marker);
-      }
+  // Listen to multiple user locations
+  const locationsRef = ref(db, 'locations');
+  onValue(locationsRef, (snapshot) => {
+    const data = snapshot.val();
 
-      // Add new marker at the received location
-      marker = L.marker(newLocation, {icon: greenIcon}).addTo(map)
-               .bindPopup("Reported Location") // Changed popup text
-               .openPopup();
+    if (data) {
+      const userCount = Object.keys(data).length;
 
-      selectedLocation = newLocation; // Update selectedLocation
+      Object.entries(data).forEach(([userId, coords]) => {
+        const latLng = L.latLng(coords.latitude, coords.longitude);
 
-      updateStatus(`Latest reported location received: (${newLocation.lat}, ${newLocation.lng})`, "info");
+        // Create or update marker
+        if (userMarkers[userId]) {
+          userMarkers[userId].setLatLng(latLng);
+        } else {
+          userMarkers[userId] = L.marker(latLng, { icon: greenIcon })
+            .addTo(map)
+            .bindPopup(`User: ${userId}`);
+        }
 
-      // Add routing from Gordon College to the new reported location
-      addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, newLocation.lat, newLocation.lng);
+        // Remove old route
+        if (userRoutes[userId]) {
+          map.removeControl(userRoutes[userId]);
+        }
 
-      // Optionally, center the map on the new location
-      map.setView(newLocation, map.getZoom());
+        // Add new route
+        userRoutes[userId] = L.Routing.control({
+          waypoints: [gordonCollegeLatLng, latLng],
+          routeWhileDragging: false,
+          geocoder: L.Control.Geocoder.nominatim(),
+          createMarker: () => null,
+          show: false
+        }).addTo(map);
+      });
 
+      updateStatus(`Tracking ${userCount} user(s)`);
     } else {
-      // Handle case where there is no location data (e.g., initially empty)
-      if (marker) {
-        map.removeLayer(marker);
-        marker = null;
-      }
-      if (routeControl) {
-          map.removeControl(routeControl);
-          routeControl = null;
-      }
-      selectedLocation = null;
-      updateStatus("No reported location available.", "info");
-      
+      updateStatus("No active locations.");
     }
   });
-  // --- End Realtime Location Sync ---
-  var greenIcon = L.icon({
-    iconUrl: 'alert.png',
-
-
-    iconSize:     [90, 80], // size of the icon
-    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-});
-
-
-  // Toggle Table Visibility
- const trapezoid = document.getElementById('trapezoid');
-const tableContainer = document.getElementById('tableContainer');
-
-function adjustTrapezoidPosition() {
-  const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
-  const offset = -22; // Adjust this value to lower the trapezoid
-  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
-}
-// Add event listener to adjust position when the table is toggled
-trapezoid.addEventListener('click', () => {
-  if (tableContainer.style.display === 'none') {
-    tableContainer.style.display = 'block'; // Show the table
-    adjustTrapezoidPosition(); // Adjust trapezoid position
-  } else {
-    tableContainer.style.display = 'none'; // Hide the table
-    trapezoid.style.bottom = '0'; // Reset trapezoid position
-  }
-});
-
-
-// Adjust position on page load
-adjustTrapezoidPosition();
-
-  // Load Members from Firestore
-  const tableBody = document.querySelector('#tableContainer tbody');
-
-  async function loadMembers() {
-    tableBody.innerHTML = '';
-    const querySnapshot = await getDocs(collection(db, 'Dashboard'));
-    querySnapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const row = document.createElement('tr');
-
-      row.innerHTML = `
-        <td>${data.fullName}</td>
-        <td>${data.position}</td>
-        <td>${data.status === 'Active' ? 'Active' : 'Off-Duty'}</td>
-      `;
-      tableBody.appendChild(row);
-    });
-  }
-
-  loadMembers();
-
-  // Update Status Message
-  function updateStatus(message, type) {
-    statusElement.textContent = message;
-    statusElement.className = `status ${type}`;
-  }
-
-   // Add Routing Functionality
-  function addRouting(startLat, startLng, endLat, endLng) {
-    const startPoint = L.latLng(startLat, startLng);
-    const endPoint = L.latLng(endLat, endLng);
-
-    // Remove existing route if it exists
-    if (routeControl) {
-      map.removeControl(routeControl);
-    }
-
-    // Add a routing control to the map
-    routeControl = L.Routing.control({
-      waypoints: [startPoint, endPoint],
-      routeWhileDragging: true,
-      geocoder: L.Control.Geocoder.nominatim(),
-      createMarker: function (i, waypoint) {
-        // Prevent default markers from routing machine
-        return null;
-      },
-      show: false // This option hides the directions panel
-    }).addTo(map);
-  }
-  
 </script>
+
 </body>
 </html>

@@ -15,14 +15,12 @@
       font-family: 'Kanit', sans-serif;
       background-color: black;
     }
-
     body {
       display: flex;
       width: 100vw;
       height: 100vh;
       align-items: center;
     }
-
     .left-side {
       width: 50%;
       height: 100%;
@@ -31,14 +29,12 @@
       align-items: center;
       position: relative;
     }
-
     .left-side img {
       max-width: 80%;
       height: auto;
       object-fit: contain;
       margin-right: 5rem;
     }
-
     .right-side {
       width: 50%;
       height: 100%;
@@ -46,7 +42,6 @@
       justify-content: center;
       align-items: center;
     }
-
     .material-symbols-outlined {
       color: white;
       font-size: 48px;
@@ -56,21 +51,18 @@
       top: 20px;
       left: 50px;
     }
-
     .material-symbols-outlined:hover {
       color: rgb(23, 23, 23);
       background-color: #ebebeb;
       transition: transform 0.3s ease;
       transform: scale(1.1);
     }
-
     #create-account-form {
       display: flex;
       flex-direction: column;
       width: 350px;
       margin-right: 3rem;
     }
-
     #create-account-form h2 {
       text-align: center;
       color: white;
@@ -79,7 +71,6 @@
       margin-bottom: 30px;
       white-space: nowrap;
     }
-
     #create-account-form input {
       background: radial-gradient(circle, #242424 0%, #313131 90%);
       margin-bottom: 20px;
@@ -89,7 +80,6 @@
       border-radius: 4px;
       color: white;
     }
-
     #create-account-form button {
       margin-top: 20px;
       padding: 10px;
@@ -104,7 +94,6 @@
       margin-right: auto;
       font-weight: 500;
     }
-
     #create-account-form button:hover {
       background-color: #4c4b4b;
       color: aliceblue;
@@ -131,9 +120,7 @@
     </form>
   </div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
-    // Firebase SDK imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
     import {
@@ -142,7 +129,6 @@
       sendEmailVerification
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
       authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -154,12 +140,10 @@
       measurementId: "G-9R21WL5VVT"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
 
-    // Form submit handler
     const createAccountForm = document.getElementById("create-account-form");
 
     createAccountForm.addEventListener("submit", async (e) => {
@@ -181,7 +165,7 @@
         await sendEmailVerification(user);
         alert("Account created! A verification email has been sent.");
 
-        createAccountForm.reset();
+        window.location.href = "login.html";
       } catch (error) {
         alert("Error: " + error.message);
         console.error(error);

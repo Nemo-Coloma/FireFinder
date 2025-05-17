@@ -1,178 +1,40 @@
-
 body {
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
+    margin: 0;
+    padding: 0;
     font-family: kanit, sans-serif;
-    overflow: hidden; /* Prevent scrollbars */
+    overflow: hidden;
 }
+
 .rectangle {
     height: 70px;
     width: 100%;
-    background: linear-gradient(180deg, #ff0e0e, #3b0909); /* Gradient from dark gray to light gray */
+    background: linear-gradient(180deg, #ff0e0e, #3b0909);
     text-align: center;
-    padding-top: 10px; /* Add top margin for the text */
-    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    padding-top: 10px;
+    box-sizing: border-box;
     font-weight: 500px;
     font-size: 30px;
     color: rgb(255, 255, 255);
 }
+
 .rectangle img {
-    height: 45px; /* Adjust logo size */
-    position: absolute; /* Position the logo absolutely */
-    left: 40px; /* Add space from the left edge */
+    height: 45px;
+    position: absolute;
+    left: 40px;
     border-radius: 50%;
-    
 }
+
 .rectangle img:nth-child(2) {
-    margin-left: 75px; /* Add space between the two logos */
+    margin-left: 75px;
 }
+
 .rectangle img:nth-child(3) {
-    margin-left: 91%; /* Add space between the two logos */
+    margin-left: 91%;
 }
 
-
-
-.login-modal {
-display: none; /* Hidden by default */
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-z-index: 1000;
-justify-content: center; /* Center horizontally */
-align-items: center; /* Center vertically */
-}
-
-/* Modal content */
-.login-content {
-
-background-color: #ffffff;
-color: #000000;
-font-size: 20px;
-padding: 20px;
-border-radius: 25px;
-width: 400px;
-height: 450px;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-text-align: center;
-position: relative;
-}
-
-.login-content h2 {
-font-family: kanit, sans-serif; /* Match the font of "Civilian" */
-margin-bottom: 20px;
-}
-
-.login-content label {
-    display: block;
-    margin: 5px 0 px;
-    text-align: left;
-}
-
-.login-content input {
-    width: 60%;
-    padding: 15px;
-    margin-bottom: 45px;
-    border: none; /* Remove the border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow */
-    border-radius: 10px; /* Keep the rounded corners */
-    outline: none; /* Remove the focus outline */
-}
-
-.login-content button {
-    width: 60%;
-    padding: 15px;
-    background-color: #bb0000;
-    color: #ffffff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.login-content button:hover {
-    background-color: #770000;
-}
-
-.create-account-link:hover {
-    text-decoration: underline;
-}
-/* Close button */
-.close-btn {
-    display: none;
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-.create-account-modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    z-index: 1000;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-}
-
-.create-account-content {
-    background-color: #ffffff;
-    color: #000000;
-    font-size: 20px;
-    padding: 30px;
-    border-radius: 25px;
-    width: 400px;
-    height: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
+.map-container {
     position: relative;
-}
-
-.create-account-content h2 {
-    margin-bottom: 20px;
-}
-
-.create-account-content input {
-    width: 80%;
-    padding: 20px;
-    margin-bottom: 30px;
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    outline: none;
-}
-
-.create-account-content button {
-    width: 80%;
-    padding: 10px;
-    background-color: #bb0000;
-    color: #ffffff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.create-account-content button:hover {
-    background-color: #770000;
-}
-
-.create-account-content .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
-    cursor: pointer;
-}
-
- .map-container {
-    position: relative;
-    height: calc(100vh - 70px); /* Adjust height to account for the rectangle */
+    height: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
 }
@@ -181,15 +43,15 @@ margin-bottom: 20px;
     flex: 1;
     height: 100%;
     border-radius: 10px;
-    z-index: 0; /* Ensure the map stays below the rectangle */
+    z-index: 0;
 }
 
-    .map-overlay-button {
+.map-overlay-button {
     height: 90px;
     position: absolute;
-    bottom: 30px; /* Adjust the distance from the bottom */
-    right: 30px; /* Adjust the distance from the right */
-    z-index: 1000; /* Ensure it appears above the map */
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
     padding: 5px 10px;
     background-color: #f40606;
     color: white;
@@ -199,47 +61,161 @@ margin-bottom: 20px;
     font-size: 14px;
     box-shadow: 0 10px 10px rgba(0, 0, 0.8, 0.8);
     font-weight: 1000;
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .map-overlay-button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
 }
+
 .map-overlay-button:hover {
-    background-color: #b80909; /* Slightly darker red on hover */
-    transform: scale(1.1); /* Slightly enlarge the button */
-    box-shadow: 0 12px 12px rgba(0, 0, 0, 0.9); /* Enhance shadow on hover */
+    background-color: #b80909;
+    transform: scale(1.1);
+    box-shadow: 0 12px 12px rgba(0, 0, 0, 0.9);
 }
-    .status {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      padding: 10px;
-      background-color: #fff;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      font-size: 14px;
-    }
 
-    .status.success {
-      color: green;
-    }
+.status {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+}
 
-    .status.error {
-      color: red;
-    }
+.status.success {
+    color: green;
+}
 
-    .status.info {
-      color: blue;
-    }
+.status.error {
+    color: red;
+}
+
+.status.info {
+    color: blue;
+}
+
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    top: 70px; /* Start below the rectangle */
+    right: -350px; /* More to the left when hidden (full width off-screen) */
+    width: 350px;
+    height: calc(100vh - 70px - 20px); /* Shorter height (viewport - header - some extra) */
+    background-color: #0e0e0e;
+    color: rgb(240, 0, 0);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px; /* Adjust padding for shorter height */
+    z-index: 1000;
+    font-size: 25px;
+    
+}
+
+.sidebar.visible {
+    right: 0; /* Position when visible */
+}
+
+.sidebar .button-group {
+    display: block; /* Changed from flex to block */
+    margin-bottom: 10px;
+    
+}
+.sidebar .toggle-button {
+    /* flex: 1;  Removed flex property */
+    /* margin: 0 5px; */
+    margin-bottom: 10px;  /* Added vertical spacing */
+    padding: 8px 0;
+       background: linear-gradient(180deg, #760000, #270707);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: 600;
+    font-size:50px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    width: 100%; /* Added width */
+     font-size: 25px;
+}
+
+.sidebar .toggle-button.active {
+    background-color: #001cb9;
+    color: white;
+}
+.sidebar .toggle-button:hover{
+     background: linear-gradient(180deg, #e10000, #4f0101);
+}
 
 
+.sidebar textarea.chatbox {
+    flex: 1; /* Allow it to take remaining vertical space */
+    max-height: 20rem; /* Ensure a minimum height */
+    resize: vertical; /* Allow vertical resizing */
+    width: 95%;
+    padding: 8px; /* Adjust padding */
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 10px; /* Adjust margin */
+    font-family: 'Kanit', sans-serif;
+    font-size: 14px;
+    background-color: #333;
+    color: white;
+    
+}
 
-    @media (max-width: 768px) {
-    /* Adjust the rectangle height and font size */
+.sidebar input[type="file"] {
+    margin-bottom: 10px; /* Adjust margin */
+    color: white;
+    font-size: 14px; /* Adjust font size */
+    
+}
+
+.sidebar button.report-btn {
+    background-color: #880000;
+    border: none;
+    padding: 10px; /* Adjust padding */
+    border-radius: 5px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Kanit', sans-serif;
+    font-size: 16px;
+    transition: background-color 0.1s ease;
+}
+
+.sidebar button.report-btn:hover {
+    background-color: #4b0000;
+}
+
+/* Map container adjustment when sidebar is visible */
+.map-container.shrink {
+    width: calc(100vw - 350px);
+    transition: width 0.3s ease;
+}
+
+.map-container {
+    width: 100vw;
+    height: 100vh;
+    transition: width 0.3s ease;
+    position: relative;
+    float: left;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
     .rectangle {
         height: 50px;
         font-size: 20px;
@@ -247,64 +223,55 @@ margin-bottom: 20px;
     }
 
     .rectangle img {
-        height: 25px; /* Reduce logo size */
-        left: 10px; /* Adjust spacing */
+        height: 25px;
+        left: 10px;
     }
 
     .rectangle img:nth-child(2) {
-        margin-left: 30px; /* Adjust spacing between logos */
+        margin-left: 30px;
     }
 
     .rectangle img:nth-child(3) {
-        margin-left: auto; /* Align to the right */
+        margin-left: auto;
         right: 10px;
         position: absolute;
         height: 5px;
         top: -2px;
     }
 
-    /* Adjust modal sizes */
     .login-content,
     .create-account-content {
-        width: 70%; /* Use most of the screen width */
-        height: auto; /* Allow height to adjust dynamically */
+        width: 70%;
+        height: auto;
         padding: 15px;
     }
 
     .login-content input,
     .create-account-content input {
-        width: 70%; /* Full width for inputs */
+        width: 70%;
         padding: 10px;
     }
 
     .login-content button,
     .create-account-content button {
-        width: 90%; /* Full width for buttons */
+        width: 90%;
         padding: 10px;
     }
 
-    /* Adjust map container */
     .map-container {
-        height: calc(100vh - 50px); /* Adjust height for smaller rectangle */
+        height: calc(100vh - 50px);
     }
 
     #map {
-        border-radius: 5px; /* Reduce border radius */
+        border-radius: 5px;
     }
 
-    /* Adjust map overlay button */
     .map-overlay-button {
         height: 70px;
         bottom: 20px;
         right: 20px;
         font-size: 12px;
-        padding: 5px 8px;
-        border-radius: 110px;
-    }
+        padding: 5px;
 
-    /* Adjust status message */
-    .status {
-        font-size: 12px;
-        padding: 8px;
     }
 }

@@ -122,12 +122,12 @@
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
-            // Placeholder logic: always "succeeds"
-            if (email && password) {
-                // Redirect to user.html
+            if (email === "adminfdp.gmail.com" && password === "123456") {
+                window.location.href = "admin.html";
+            } else if (email && password) {
                 window.location.href = "user.html";
             } else {
                 alert("Please enter email and password.");
@@ -137,4 +137,3 @@
 
 </body>
 </html>
-

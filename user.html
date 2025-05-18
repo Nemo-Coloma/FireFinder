@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +26,6 @@
         <img src="GC Logo.png" alt="Logo">
         <img src="Fire Dep Logo.jpg">
         <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px;  cursor: pointer;">
-
         <span>CIVILIAN</span>
 
         <div class="login-modal" id="login-modal">
@@ -53,8 +51,7 @@
                 <form>
                     <input type="email" id="create-email" name="email" placeholder="Enter your email" required>
                     <input type="password" id="create-password" name="password" placeholder="Enter your password" required>
-                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password"
-                        required>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
                     <button type="submit" id="create-account-btn">Create Account</button>
                 </form>
             </div>
@@ -63,7 +60,6 @@
 
     <div class="map-container">
         <div id="map"></div>
-
         <div id="status" class="status"></div>
     </div>
 
@@ -80,24 +76,19 @@
     </div>
 
     <script>
-
         const icon = document.getElementById('icon');
         const sidebar = document.getElementById('sidebar');
         let sidebarVisible = false;
-
-        // Initially hide the sidebar (matching CSS)
         sidebar.style.right = '0rem';
-        sidebar.style.top = '70px'; // Initial top position
-        sidebar.style.height = 'calc(101vh - 10px - 20px)'; // Initial height
+        sidebar.style.top = '70px';
+        sidebar.style.height = 'calc(101vh - 10px - 20px)';
 
-        // Toggle sidebar visibility on icon click
         icon.addEventListener('click', () => {
             sidebarVisible = !sidebarVisible;
-            sidebar.classList.toggle('visible', sidebarVisible); // TOGGLE THE CLASS
+            sidebar.classList.toggle('visible', sidebarVisible);
             sidebar.style.right = sidebarVisible ? '0' : '-350px';
         });
 
-        // Firebase Initialization
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
             authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -110,13 +101,11 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Map Setup
         const map = L.map('map').setView([14.8292, 120.2820], 14.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Add Gordon College Marker
         const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
         L.marker(gordonCollegeLatLng).addTo(map)
             .bindPopup('Gordon College')
@@ -125,108 +114,55 @@
         let selectedLocation = null;
         let marker = null;
         let routeControl = null;
-        const saveButton = document.getElementById('saveButton');
         const statusElement = document.getElementById('status');
 
-        // Map Click Event
         map.on('click', function (e) {
             selectedLocation = e.latlng;
 
-            // Remove previous marker if it exists
             if (marker) map.removeLayer(marker);
-
-            // Add new marker
             marker = L.marker(selectedLocation).addTo(map)
                 .bindPopup("Selected Location")
                 .openPopup();
 
-            saveButton.disabled = false; // Enable the button
             updateStatus("", "");
-
-            // Add routing from Gordon College to the selected location
             addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
         });
 
-        // Save Location Button Click Event
-        saveButton.addEventListener('click', function () {
-            if (!saveButton.disabled) {
-                saveLocation();
-            }
-        });
-        
-
-        function saveLocation() {
-            if (!selectedLocation) {
-                updateStatus("No location selected.", "error");
-                return;
-            }
-
-            const locationData = {
-                latitude: selectedLocation.lat,
-                longitude: selectedLocation.lng,
-                timestamp: Date.now()
-            };
-
-            saveButton.disabled = true; // Disable the button after saving
-            updateStatus("Saving location...", "info");
-
-            // Use .set() to save to a fixed node 'currentLocation'
-            database.ref("currentLocation").set(locationData).then(() => {
-                updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`,
-                    "success");
-            }).catch(error => {
-                console.error("Error saving location: ", error);
-                updateStatus(`Failed to save location: ${error.message}`, "error");
-                saveButton.disabled = false; // Re-enable the button if saving fails
-            });
-        }
-
-        // Add Routing Functionality
         function addRouting(startLat, startLng, endLat, endLng) {
             const startPoint = L.latLng(startLat, startLng);
             const endPoint = L.latLng(endLat, endLng);
 
-            // Remove existing route if it exists
             if (routeControl) {
                 map.removeControl(routeControl);
             }
 
-            // Add a routing control to the map
             routeControl = L.Routing.control({
                 waypoints: [startPoint, endPoint],
                 routeWhileDragging: true,
                 geocoder: L.Control.Geocoder.nominatim(),
                 createMarker: function (i, waypoint) {
-                    if (i === 0) {
-                        return L.marker(waypoint.latLng).bindPopup("Start: Gordon College");
-                    } else if (i === 1) {
-                        return L.marker(waypoint.latLng).bindPopup("End: Selected Location");
-                    }
+                    if (i === 0) return L.marker(waypoint.latLng).bindPopup("Start: Gordon College");
+                    if (i === 1) return L.marker(waypoint.latLng).bindPopup("End: Selected Location");
                     return null;
                 },
-                show: false // This option hides the directions panel
+                show: false
             }).addTo(map);
         }
-        // Update Status
+
         function updateStatus(msg = '', type = 'info') {
             statusElement.textContent = msg;
             statusElement.className = 'status ' + type;
         }
 
-        // Login form submission handling
         const loginForm = document.querySelector('.login-content form');
-
         loginForm.addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent form from submitting normally
-
+            event.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             if (email === 'adminfdp@gmail.com' && password === '123456') {
-                // Redirect to Admin.html if credentials match (fix case sensitivity)
                 window.location.href = 'Admin.html';
             } else {
-                // Show error message for invalid credentials
                 let errorMsg = loginForm.querySelector('.error-message');
                 if (!errorMsg) {
                     errorMsg = document.createElement('div');
@@ -238,8 +174,60 @@
                 errorMsg.textContent = 'Invalid email or password. Please try again.';
             }
         });
-        
+
+        // --- ADDITIONAL REPORT FUNCTIONALITY BELOW ---
+
+        const reportBtn = document.getElementById('report-btn');
+        const emergencyButtons = document.querySelectorAll('.toggle-button');
+        const chatbox = document.getElementById('chatbox');
+        const imageUploader = document.getElementById('image-uploader');
+        let selectedEmergency = null;
+
+        emergencyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                emergencyButtons.forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                selectedEmergency = button.textContent.trim();
+            });
+        });
+
+        reportBtn.addEventListener('click', () => {
+            const message = chatbox.value.trim();
+            const file = imageUploader.files[0];
+
+            if (!selectedEmergency || !message || !file || !selectedLocation) {
+                alert("Please complete all fields: select emergency type, write a message, choose a location and image.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const base64Image = event.target.result;
+                const report = {
+                    type: selectedEmergency,
+                    message: message,
+                    latitude: selectedLocation.lat,
+                    longitude: selectedLocation.lng,
+                    timestamp: Date.now(),
+                    image: base64Image
+                };
+
+                firebase.database().ref("reports").push(report)
+                    .then(() => {
+                        alert("Report submitted successfully!");
+                        chatbox.value = '';
+                        imageUploader.value = '';
+                        emergencyButtons.forEach(btn => btn.classList.remove('selected'));
+                        selectedEmergency = null;
+                    })
+                    .catch(error => {
+                        console.error("Error submitting report:", error);
+                        alert("Failed to submit report. Try again.");
+                    });
+            };
+            reader.readAsDataURL(file);
+        });
     </script>
 </body>
-
 </html>
+

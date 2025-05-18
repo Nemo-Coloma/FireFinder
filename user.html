@@ -190,96 +190,114 @@
         const chatbox = document.getElementById('chatbox');
         const imageUploader = document.getElementById('image-uploader');
 
-        reportBtn.addEventListener('click', async () => {
+        reportBtn.addEventListener('click', () => {
             if (!selectedEmergency) {
-                alert("Please select an emergency type (Fire, Accident, Medical).");
+                updateStatus("Please select an emergency type.", "error");
                 return;
             }
             if (!selectedLocation) {
-                alert("Please select a location on the map.");
+                updateStatus("Please select a location on the map.", "error");
                 return;
             }
             const message = chatbox.value.trim();
             if (!message) {
-                alert("Please enter a message.");
+                updateStatus("Please enter a message.", "error");
                 return;
             }
+            updateStatus("Submitting report...", "info");
 
-            reportBtn.disabled = true;
-            reportBtn.textContent = "Reporting...";
-
-            try {
-                // Upload image if selected
-                let imageUrl = '';
-                const file = imageUploader.files[0];
-                if (file) {
-                    const storageRef = storage.ref();
-                    const fileRef = storageRef.child('reports/' + Date.now() + '_' + file.name);
-                    await fileRef.put(file);
-                    imageUrl = await fileRef.getDownloadURL();
-                }
-
-                // Prepare data to send
-                const reportData = {
-                    emergencyType: selectedEmergency,
-                    message: message,
-                    latitude: selectedLocation.lat,
-                    longitude: selectedLocation.lng,
-                    imageUrl: imageUrl,
-                    timestamp: Date.now()
-                };
-
-                // Push report to Firebase Realtime Database
-                await database.ref('reports').push(reportData);
-
-                alert("Report sent successfully!");
-                // Reset inputs
-                chatbox.value = '';
-                imageUploader.value = '';
-                emergencyButtons.forEach(btn => btn.classList.remove('selected'));
-                selectedEmergency = '';
-                if (marker) {
-                    map.removeLayer(marker);
-                    marker = null;
-                }
-                if (routeControl) {
-                    map.removeControl(routeControl);
-                    routeControl = null;
-                }
-                selectedLocation = null;
-                updateStatus('', '');
-
-            } catch (error) {
-                alert("Error sending report: " + error.message);
-                console.error(error);
-            } finally {
-                reportBtn.disabled = false;
-                reportBtn.textContent = "REPORT to FDP";
-            }
-        });
-
-        // Login Form
-        const loginForm = document.querySelector('.login-content form');
-        loginForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            if (email === 'adminfdp@gmail.com' && password === '123456') {
-                window.location.href = 'Admin.html';
+            if (imageUploader.files.length > 0) {
+                const imageFile = imageUploader.files[0];
+                const storageRef = storage.ref('images/' + Date.now() + '_' + imageFile.name);
+                storageRef.put(imageFile).then(snapshot => {
+                    snapshot.ref.getDownloadURL().then(url => {
+                        saveReport(url);
+                    }).catch(error => {
+                        updateStatus("Failed to get image URL: " + error.message, "error");
+                    });
+                }).catch(error => {
+                    updateStatus("Failed to upload image: " + error.message, "error");
+                });
             } else {
-                let errorMsg = loginForm.querySelector('.error-message');
-                if (!errorMsg) {
-                    errorMsg = document.createElement('div');
-                    errorMsg.className = 'error-message';
-                    errorMsg.style.color = 'red';
-                    errorMsg.style.marginTop = '10px';
-                    loginForm.appendChild(errorMsg);
-                }
-                errorMsg.textContent = 'Invalid email or password. Please try again.';
+                saveReport(null);
             }
         });
+
+        function saveReport(imageUrl) {
+            const reportData = {
+                emergencyType: selectedEmergency,
+                message: chatbox.value.trim(),
+                latitude: selectedLocation.lat,
+                longitude: selectedLocation.lng,
+                timestamp: Date.now(),
+                imageUrl: imageUrl || null
+            };
+            const newReportKey = database.ref().child('reports').push().key;
+            const updates = {};
+            updates['/reports/' + newReportKey] = reportData;
+            database.ref().update(updates)
+                .then(() => {
+                    updateStatus("Report submitted successfully!", "success");
+                    chatbox.value = '';
+                    imageUploader.value = '';
+                    emergencyButtons.forEach(btn => btn.classList.remove('selected'));
+                    selectedEmergency = '';
+                    if (marker) map.removeLayer(marker);
+                    marker = null;
+                    selectedLocation = null;
+                    if (routeControl) map.removeControl(routeControl);
+                })
+                .catch(error => {
+                    updateStatus("Failed to submit report: " + error.message, "error");
+                });
+        }
+
+        // --- START of ADDED CODE for live report display ---
+
+        const reportsRef = firebase.database().ref('reports');
+        const reportMarkers = {};
+
+        reportsRef.on('value', snapshot => {
+            const reports = snapshot.val() || {};
+
+            // Clear old markers
+            Object.values(reportMarkers).forEach(marker => map.removeLayer(marker));
+            Object.keys(reportMarkers).forEach(key => delete reportMarkers[key]);
+
+            Object.entries(reports).forEach(([key, report]) => {
+                const { latitude, longitude, emergencyType, message, imageUrl, timestamp } = report;
+                if (!latitude || !longitude) return;
+
+                // Color based on emergency type
+                let iconColor = 'FF0000'; // red default
+                if (emergencyType.toLowerCase() === 'medical') iconColor = '0000FF'; // blue
+                else if (emergencyType.toLowerCase() === 'accident') iconColor = 'FFA500'; // orange
+
+                const icon = L.icon({
+                    iconUrl: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${iconColor}`,
+                    iconSize: [21, 34],
+                    iconAnchor: [10, 34],
+                    popupAnchor: [0, -34]
+                });
+
+                const marker = L.marker([latitude, longitude], { icon }).addTo(map);
+
+                const timeString = new Date(timestamp).toLocaleString();
+                const popupContent = `
+                    <b>Emergency:</b> ${emergencyType}<br>
+                    <b>Message:</b> ${message}<br>
+                    ${imageUrl ? `<img src="${imageUrl}" alt="Image" style="max-width:100px; max-height:100px; display:block; margin-top:5px;">` : ''}
+                    <small><i>Reported at: ${timeString}</i></small>
+                `;
+                marker.bindPopup(popupContent);
+
+                reportMarkers[key] = marker;
+            });
+        });
+
+        // --- END of ADDED CODE ---
+
     </script>
 </body>
 
 </html>
-

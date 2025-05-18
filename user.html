@@ -2,13 +2,11 @@
 <html lang="en">
 
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CIVILIAN</title>
 
     <!-- Firebase & Leaflet Scripts -->
@@ -16,13 +14,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
     <style>
         .toggle-button {
@@ -50,9 +48,9 @@
 
 <body>
     <div class="rectangle">
-        <img src="GC Logo.png" alt="Logo">
-        <img src="Fire Dep Logo.jpg">
-        <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px;  cursor: pointer;">
+        <img src="GC Logo.png" alt="Logo" />
+        <img src="Fire Dep Logo.jpg" />
+        <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px; cursor: pointer" />
         <span>CIVILIAN</span>
 
         <div class="login-modal" id="login-modal">
@@ -60,11 +58,11 @@
                 <span class="close-btn" id="close-btn">&times;</span>
                 <h2>Log In</h2>
                 <form>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required />
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required />
                     <button type="submit">Log In</button>
-                    <div style="margin: 10px 0; font-size: 14px; color: #838383;">OR</div>
-                    <div style="margin-top: 15px; font-size: 14px;">
+                    <div style="margin: 10px 0; font-size: 14px; color: #838383">OR</div>
+                    <div style="margin-top: 15px; font-size: 14px">
                         <a href="#" class="create-account-link">Create an Account</a>
                     </div>
                 </form>
@@ -76,10 +74,9 @@
                 <span class="close-btn" id="create-close-btn">&times;</span>
                 <h2>Create Account</h2>
                 <form>
-                    <input type="email" id="create-email" name="email" placeholder="Enter your email" required>
-                    <input type="password" id="create-password" name="password" placeholder="Enter your password" required>
-                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password"
-                        required>
+                    <input type="email" id="create-email" name="email" placeholder="Enter your email" required />
+                    <input type="password" id="create-password" name="password" placeholder="Enter your password" required />
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required />
                     <button type="submit" id="create-account-btn">Create Account</button>
                 </form>
             </div>
@@ -92,7 +89,7 @@
     </div>
 
     <div class="sidebar" id="sidebar">
-        <h2 style="text-align: center;">WHAT'S THE EMERGENCY?</h2>
+        <h2 style="text-align: center">WHAT'S THE EMERGENCY?</h2>
         <div class="button-group">
             <button class="toggle-button" id="fire-btn">FIRE</button>
             <button class="toggle-button" id="accident-btn">ACCIDENT</button>
@@ -116,11 +113,6 @@
             sidebar.style.right = sidebarVisible ? '0' : '-350px';
         });
 
-        // Prevent form reload on submit for all forms on page
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', e => e.preventDefault());
-        });
-
         // Firebase Initialization
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
@@ -129,7 +121,7 @@
             projectId: "firefinder-d5c0a",
             storageBucket: "firefinder-d5c0a.appspot.com",
             messagingSenderId: "221428549294",
-            appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+            appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -138,11 +130,14 @@
         // Map Setup
         const map = L.map('map').setView([14.8292, 120.2820], 14.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; OpenStreetMap contributors',
         }).addTo(map);
 
         const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-        L.marker(gordonCollegeLatLng).addTo(map).bindPopup('Gordon College').openPopup();
+        L.marker(gordonCollegeLatLng)
+            .addTo(map)
+            .bindPopup('Gordon College')
+            .openPopup();
 
         let selectedLocation = null;
         let marker = null;
@@ -152,8 +147,11 @@
         map.on('click', function (e) {
             selectedLocation = e.latlng;
             if (marker) map.removeLayer(marker);
-            marker = L.marker(selectedLocation).addTo(map).bindPopup("Selected Location").openPopup();
-            updateStatus("", "");
+            marker = L.marker(selectedLocation)
+                .addTo(map)
+                .bindPopup('Selected Location')
+                .openPopup();
+            updateStatus('', '');
             addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
         });
 
@@ -166,10 +164,11 @@
                 routeWhileDragging: true,
                 geocoder: L.Control.Geocoder.nominatim(),
                 createMarker: function (i, waypoint) {
-                    return i === 0 ? L.marker(waypoint.latLng).bindPopup("Start: Gordon College")
-                        : L.marker(waypoint.latLng).bindPopup("End: Selected Location");
+                    return i === 0
+                        ? L.marker(waypoint.latLng).bindPopup('Start: Gordon College')
+                        : L.marker(waypoint.latLng).bindPopup('End: Selected Location');
                 },
-                show: false
+                show: false,
             }).addTo(map);
         }
 
@@ -180,42 +179,40 @@
 
         // Emergency Type Selection
         const emergencyButtons = document.querySelectorAll('.toggle-button');
-        let selectedEmergency = '';
+        let selectedEmergency = null;
 
-        emergencyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                emergencyButtons.forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
-                selectedEmergency = button.textContent.trim();
+        emergencyButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                emergencyButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedEmergency = btn.textContent.trim();
             });
         });
 
-        // Report Button Handling
+        // Report Button and Upload
         const reportBtn = document.getElementById('report-btn');
         const chatbox = document.getElementById('chatbox');
         const imageUploader = document.getElementById('image-uploader');
 
         reportBtn.addEventListener('click', async () => {
+            if (!selectedEmergency) {
+                alert("Select emergency type.");
+                return;
+            }
+            if (!selectedLocation) {
+                alert("Select a location on the map.");
+                return;
+            }
+            const message = chatbox.value.trim();
+            if (!message) {
+                alert("Type your message.");
+                return;
+            }
             try {
-                if (!selectedEmergency) {
-                    alert("Please select an emergency type (Fire, Accident, Medical).");
-                    return;
-                }
-                if (!selectedLocation) {
-                    alert("Please select a location on the map.");
-                    return;
-                }
-                const message = chatbox.value.trim();
-                if (!message) {
-                    alert("Please enter a message.");
-                    return;
-                }
-
                 reportBtn.disabled = true;
                 reportBtn.textContent = "Reporting...";
-                updateStatus("Submitting report...", "info");
 
-                let imageUrl = '';
+                let imageUrl = "";
                 const file = imageUploader.files[0];
                 if (file) {
                     const storageRef = storage.ref('reports/' + Date.now() + '_' + file.name);
@@ -225,22 +222,22 @@
 
                 const reportData = {
                     emergencyType: selectedEmergency,
-                    message: message,
+                    message,
                     latitude: selectedLocation.lat,
                     longitude: selectedLocation.lng,
-                    imageUrl: imageUrl,
+                    imageUrl,
                     timestamp: Date.now()
                 };
 
                 await database.ref('reports').push(reportData);
 
-                alert("Report sent successfully!");
+                alert("Report submitted successfully!");
 
-                // Reset inputs
-                chatbox.value = '';
-                imageUploader.value = '';
-                emergencyButtons.forEach(btn => btn.classList.remove('selected'));
-                selectedEmergency = '';
+                // Reset input fields and map selections
+                chatbox.value = "";
+                imageUploader.value = "";
+                selectedEmergency = null;
+                emergencyButtons.forEach(b => b.classList.remove('selected'));
                 if (marker) {
                     map.removeLayer(marker);
                     marker = null;
@@ -252,36 +249,15 @@
                 selectedLocation = null;
                 updateStatus('', '');
 
+                reportBtn.textContent = "REPORT to FDP";
             } catch (error) {
-                alert("Error sending report: " + error.message);
-                console.error("Report error:", error);
-                updateStatus("Error sending report: " + error.message, "error");
+                alert("Failed to report: " + error.message);
+                reportBtn.textContent = "REPORT to FDP";
             } finally {
                 reportBtn.disabled = false;
-                reportBtn.textContent = "REPORT to FDP";
             }
         });
 
-        // Login Form
-        const loginForm = document.querySelector('.login-content form');
-        loginForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            if (email === 'adminfdp@gmail.com' && password === '123456') {
-                window.location.href = 'Admin.html';
-            } else {
-                let errorMsg = loginForm.querySelector('.error-message');
-                if (!errorMsg) {
-                    errorMsg = document.createElement('div');
-                    errorMsg.className = 'error-message';
-                    errorMsg.style.color = 'red';
-                    errorMsg.style.marginTop = '10px';
-                    loginForm.appendChild(errorMsg);
-                }
-                errorMsg.textContent = 'Invalid email or password. Please try again.';
-            }
-        });
     </script>
 </body>
 

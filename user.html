@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> <!-- 🔥 Firestore SDK added -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -42,6 +42,37 @@
             background-color: #d32f2f !important;
             color: #fff !important;
             border: 2px solid #b71c1c;
+        }
+
+        /* Admin report container styles */
+        #adminReports {
+            margin: 20px;
+            padding: 10px;
+            border: 2px solid #444;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #fafafa;
+        }
+
+        #adminReports h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .report-card {
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .report-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
@@ -83,7 +114,7 @@
     </div>
 
     <div class="map-container">
-        <div id="map"></div>
+        <div id="map" style="height: 400px;"></div>
         <div id="status" class="status"></div>
     </div>
 
@@ -97,6 +128,12 @@
         <textarea class="chatbox" id="chatbox" placeholder="Type your message here..."></textarea>
         <input type="file" id="image-uploader" accept="image/*" />
         <button class="report-btn" id="report-btn">REPORT to FDP</button>
+    </div>
+
+    <!-- Admin Report Display Section -->
+    <div id="adminReports">
+        <h2>ADMIN REPORTS</h2>
+        <div id="reportsContainer"></div>
     </div>
 
     <script>
@@ -124,7 +161,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const storage = firebase.storage();
-        const firestore = firebase.firestore(); // 🔥 Initialize Firestore
+        const firestore = firebase.firestore();
 
         const map = L.map('map').setView([14.8292, 120.2820], 14.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -218,6 +255,16 @@
             });
         }
 
+        // Convert file to Base64 string
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
         reportBtn.addEventListener('click', async () => {
             if (!selectedEmergency) {
                 alert("Select emergency type.");
@@ -236,13 +283,11 @@
                 reportBtn.disabled = true;
                 reportBtn.textContent = "Reporting...";
 
-                let imageUrl = "";
+                let imageBase64 = "";
                 const file = imageUploader.files[0];
                 if (file) {
                     const compressedFile = await compressImage(file);
-                    const storageRef = storage.ref('reports/' + Date.now() + '_' + compressedFile.name);
-                    await storageRef.put(compressedFile);
-                    imageUrl = await storageRef.getDownloadURL();
+                    imageBase64 = await fileToBase64(compressedFile);
                 }
 
                 const reportData = {
@@ -250,13 +295,12 @@
                     message,
                     latitude: selectedLocation.lat,
                     longitude: selectedLocation.lng,
-                    imageUrl,
+                    imageBase64, // store base64 image string in Firestore
                     timestamp: Date.now()
                 };
 
-                await database.ref('reports').push(reportData); // 👈 Existing line kept
-
-                await firestore.collection('reports').add(reportData); // 🔥 New Firestore line added
+                // Save to Firestore only (no storage, no realtime database)
+                await firestore.collection('reports').add(reportData);
 
                 alert("Report submitted successfully!");
                 chatbox.value = "";
@@ -280,6 +324,51 @@
             } finally {
                 reportBtn.disabled = false;
             }
+        });
+
+        // ====== ADMIN PANEL CODE TO READ AND SHOW REPORTS ======
+        const reportsContainer = document.getElementById('reportsContainer');
+
+        function createReportCard(report) {
+            const card = document.createElement('div');
+            card.classList.add('report-card');
+
+            const type = document.createElement('div');
+            type.innerHTML = `<strong>Emergency:</strong> ${report.emergencyType}`;
+            card.appendChild(type);
+
+            const msg = document.createElement('div');
+            msg.innerHTML = `<strong>Message:</strong> ${report.message}`;
+            card.appendChild(msg);
+
+            const coords = document.createElement('div');
+            coords.innerHTML = `<strong>Location:</strong> Lat ${report.latitude.toFixed(5)}, Lng ${report.longitude.toFixed(5)}`;
+            card.appendChild(coords);
+
+            if (report.imageBase64) {
+                const img = document.createElement('img');
+                img.src = report.imageBase64;
+                img.alt = "Reported Image";
+                img.classList.add('report-image');
+                card.appendChild(img);
+            }
+
+            const time = document.createElement('div');
+            const date = new Date(report.timestamp);
+            time.innerHTML = `<small>Reported at: ${date.toLocaleString()}</small>`;
+            card.appendChild(time);
+
+            return card;
+        }
+
+        // Listen to Firestore reports collection in real-time
+        firestore.collection('reports').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+            reportsContainer.innerHTML = ''; // clear container
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const card = createReportCard(data);
+                reportsContainer.appendChild(card);
+            });
         });
     </script>
 </body>

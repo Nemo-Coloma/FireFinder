@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -45,7 +44,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="rectangle">
         <img src="GC Logo.png" alt="Logo" />
@@ -113,7 +111,6 @@
             sidebar.style.right = sidebarVisible ? '0' : '-350px';
         });
 
-        // Firebase Initialization
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
             authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -127,7 +124,6 @@
         const database = firebase.database();
         const storage = firebase.storage();
 
-        // Map Setup
         const map = L.map('map').setView([14.8292, 120.2820], 14.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
@@ -177,10 +173,8 @@
             statusElement.className = 'status ' + type;
         }
 
-        // Emergency Type Selection
         const emergencyButtons = document.querySelectorAll('.toggle-button');
         let selectedEmergency = null;
-
         emergencyButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 emergencyButtons.forEach(b => b.classList.remove('selected'));
@@ -189,10 +183,39 @@
             });
         });
 
-        // Report Button and Upload
         const reportBtn = document.getElementById('report-btn');
         const chatbox = document.getElementById('chatbox');
         const imageUploader = document.getElementById('image-uploader');
+
+        // 🔧 Image compression function added
+        async function compressImage(file, maxWidth = 800, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            if (blob) {
+                                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                                resolve(compressedFile);
+                            } else {
+                                reject(new Error("Image compression failed."));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = () => reject(new Error("Image load error"));
+                };
+                reader.onerror = () => reject(new Error("File read error"));
+            });
+        }
 
         reportBtn.addEventListener('click', async () => {
             if (!selectedEmergency) {
@@ -215,8 +238,9 @@
                 let imageUrl = "";
                 const file = imageUploader.files[0];
                 if (file) {
-                    const storageRef = storage.ref('reports/' + Date.now() + '_' + file.name);
-                    await storageRef.put(file);
+                    const compressedFile = await compressImage(file);
+                    const storageRef = storage.ref('reports/' + Date.now() + '_' + compressedFile.name);
+                    await storageRef.put(compressedFile);
                     imageUrl = await storageRef.getDownloadURL();
                 }
 
@@ -232,8 +256,6 @@
                 await database.ref('reports').push(reportData);
 
                 alert("Report submitted successfully!");
-
-                // Reset input fields and map selections
                 chatbox.value = "";
                 imageUploader.value = "";
                 selectedEmergency = null;
@@ -248,7 +270,6 @@
                 }
                 selectedLocation = null;
                 updateStatus('', '');
-
                 reportBtn.textContent = "REPORT to FDP";
             } catch (error) {
                 alert("Failed to report: " + error.message);
@@ -257,8 +278,6 @@
                 reportBtn.disabled = false;
             }
         });
-
     </script>
 </body>
-
 </html>

@@ -14,6 +14,7 @@
     <!-- Firebase & Leaflet Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -23,7 +24,6 @@
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
 
-    <!-- Add Highlight Styling for Emergency Buttons -->
     <style>
         .toggle-button {
             background-color: #f0f0f0;
@@ -55,7 +55,6 @@
         <img src="icon.png" id="icon" alt="Icon" style="height: 35px; padding-top: 9px;  cursor: pointer;">
         <span>CIVILIAN</span>
 
-        <!-- Login Modal -->
         <div class="login-modal" id="login-modal">
             <div class="login-content">
                 <span class="close-btn" id="close-btn">&times;</span>
@@ -72,7 +71,6 @@
             </div>
         </div>
 
-        <!-- Create Account Modal -->
         <div class="create-account-modal" id="create-account-modal">
             <div class="create-account-content">
                 <span class="close-btn" id="create-close-btn">&times;</span>
@@ -80,7 +78,8 @@
                 <form>
                     <input type="email" id="create-email" name="email" placeholder="Enter your email" required>
                     <input type="password" id="create-password" name="password" placeholder="Enter your password" required>
-                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password"
+                        required>
                     <button type="submit" id="create-account-btn">Create Account</button>
                 </form>
             </div>
@@ -117,24 +116,26 @@
             sidebar.style.right = sidebarVisible ? '0' : '-350px';
         });
 
-        // Firebase Init
+        // Firebase Initialization
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
             authDomain: "firefinder-d5c0a.firebaseapp.com",
             databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
             projectId: "firefinder-d5c0a",
-            storageBucket: "firefinder-d5c0a.firebasestorage.app",
+            storageBucket: "firefinder-d5c0a.appspot.com",
             messagingSenderId: "221428549294",
             appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const storage = firebase.storage();
 
-        // Map
+        // Map Setup
         const map = L.map('map').setView([14.8292, 120.2820], 14.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
         const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
         L.marker(gordonCollegeLatLng).addTo(map).bindPopup('Gordon College').openPopup();
 
@@ -184,6 +185,79 @@
             });
         });
 
+        // Report Button Handling
+        const reportBtn = document.getElementById('report-btn');
+        const chatbox = document.getElementById('chatbox');
+        const imageUploader = document.getElementById('image-uploader');
+
+        reportBtn.addEventListener('click', async () => {
+            if (!selectedEmergency) {
+                alert("Please select an emergency type (Fire, Accident, Medical).");
+                return;
+            }
+            if (!selectedLocation) {
+                alert("Please select a location on the map.");
+                return;
+            }
+            const message = chatbox.value.trim();
+            if (!message) {
+                alert("Please enter a message.");
+                return;
+            }
+
+            reportBtn.disabled = true;
+            reportBtn.textContent = "Reporting...";
+
+            try {
+                // Upload image if selected
+                let imageUrl = '';
+                const file = imageUploader.files[0];
+                if (file) {
+                    const storageRef = storage.ref();
+                    const fileRef = storageRef.child('reports/' + Date.now() + '_' + file.name);
+                    await fileRef.put(file);
+                    imageUrl = await fileRef.getDownloadURL();
+                }
+
+                // Prepare data to send
+                const reportData = {
+                    emergencyType: selectedEmergency,
+                    message: message,
+                    latitude: selectedLocation.lat,
+                    longitude: selectedLocation.lng,
+                    imageUrl: imageUrl,
+                    timestamp: Date.now()
+                };
+
+                // Push report to Firebase Realtime Database
+                await database.ref('reports').push(reportData);
+
+                alert("Report sent successfully!");
+                // Reset inputs
+                chatbox.value = '';
+                imageUploader.value = '';
+                emergencyButtons.forEach(btn => btn.classList.remove('selected'));
+                selectedEmergency = '';
+                if (marker) {
+                    map.removeLayer(marker);
+                    marker = null;
+                }
+                if (routeControl) {
+                    map.removeControl(routeControl);
+                    routeControl = null;
+                }
+                selectedLocation = null;
+                updateStatus('', '');
+
+            } catch (error) {
+                alert("Error sending report: " + error.message);
+                console.error(error);
+            } finally {
+                reportBtn.disabled = false;
+                reportBtn.textContent = "REPORT to FDP";
+            }
+        });
+
         // Login Form
         const loginForm = document.querySelector('.login-content form');
         loginForm.addEventListener('submit', function (event) {
@@ -208,3 +282,4 @@
 </body>
 
 </html>
+

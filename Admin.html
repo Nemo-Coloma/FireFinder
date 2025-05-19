@@ -28,173 +28,183 @@
       border-radius: 5px;
       z-index: 1000;
     }
-    /* Emergency marker icons styles */
-    .emergency-icon {
-      border-radius: 50%;
-      border: 2px solid white;
-      background-color: red;
-      width: 30px;
-      height: 30px;
-      display: block;
-    }
   </style>
 </head>
 <body>
 
-  <div id="map"></div>
-  <div id="status" class="status">Waiting for data...</div>
+<div id="map"></div>
+<div id="status" class="status">Waiting for data...</div>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
+<!-- Command UI -->
+<div style="position:absolute; top:10px; right:10px; z-index:1100; background:#fff; padding:10px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.3); width: 250px;">
+  <h3>Send Command</h3>
+  <input id="targetUserId" type="text" placeholder="User ID" style="width:100%; margin-bottom:6px;" />
+  <select id="commandType" style="width:100%; margin-bottom:6px;">
+    <option value="ALERT">Alert (popup)</option>
+    <option value="CHAT">Chat (status)</option>
+  </select>
+  <textarea id="commandMessage" rows="3" placeholder="Message" style="width:100%; margin-bottom:6px;"></textarea>
+  <button id="sendCommandBtn" style="width:100%;">Send</button>
+</div>
 
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
-      authDomain: "firefinder-d5c0a.firebaseapp.com",
-      projectId: "firefinder-d5c0a",
-      storageBucket: "firefinder-d5c0a.appspot.com",
-      messagingSenderId: "221428549294",
-      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
-      databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
-    };
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+  import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+    authDomain: "firefinder-d5c0a.firebaseapp.com",
+    projectId: "firefinder-d5c0a",
+    storageBucket: "firefinder-d5c0a.appspot.com",
+    messagingSenderId: "221428549294",
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
+    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com"
+  };
 
-    // Map Initialization
-    const map = L.map('map').setView([14.832, 120.282], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-    L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
+  const map = L.map('map').setView([14.832, 120.282], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-    // Green alert icon for user locations
-    const greenIcon = L.icon({
-      iconUrl: 'alert.png',
-      iconSize: [60, 60],
-      iconAnchor: [30, 60],
-      popupAnchor: [0, -60]
-    });
+  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+  L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
 
-    // Status update element
-    const statusElement = document.getElementById('status');
-    function updateStatus(msg, type = 'info') {
-      statusElement.textContent = msg;
+  const greenIcon = L.icon({
+    iconUrl: 'alert.png',
+    iconSize: [60, 60],
+    iconAnchor: [30, 60],
+    popupAnchor: [0, -60]
+  });
+
+  const statusElement = document.getElementById('status');
+  function updateStatus(msg) {
+    statusElement.textContent = msg;
+  }
+
+  const userMarkers = {};
+  const userRoutes = {};
+
+  const locationsRef = ref(db, 'locations');
+  onValue(locationsRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      const userCount = Object.keys(data).length;
+      Object.entries(data).forEach(([userId, coords]) => {
+        const latLng = L.latLng(coords.latitude, coords.longitude);
+
+        if (userMarkers[userId]) {
+          userMarkers[userId].setLatLng(latLng);
+        } else {
+          userMarkers[userId] = L.marker(latLng, { icon: greenIcon })
+            .addTo(map)
+            .bindPopup(`User: ${userId}`);
+        }
+
+        if (userRoutes[userId]) {
+          map.removeControl(userRoutes[userId]);
+        }
+
+        userRoutes[userId] = L.Routing.control({
+          waypoints: [gordonCollegeLatLng, latLng],
+          routeWhileDragging: false,
+          geocoder: L.Control.Geocoder.nominatim(),
+          createMarker: () => null,
+          show: false
+        }).addTo(map);
+      });
+
+      updateStatus(`Tracking ${userCount} user(s)`);
+    } else {
+      updateStatus("No active locations.");
+    }
+  });
+
+  // Emergency icons and reports
+  const emergencyIcons = {
+    fire: L.icon({
+      iconUrl: 'fire-icon.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    }),
+    medical: L.icon({
+      iconUrl: 'medical-icon.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    }),
+    accident: L.icon({
+      iconUrl: 'accident-icon.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    }),
+  };
+
+  const reportMarkers = {};
+  const reportsRef = ref(db, 'reports');
+  onValue(reportsRef, (snapshot) => {
+    const reports = snapshot.val();
+
+    for (const id in reportMarkers) {
+      if (!reports || !reports[id]) {
+        map.removeLayer(reportMarkers[id]);
+        delete reportMarkers[id];
+      }
     }
 
-    // Refs to store markers/routes per user
-    const userMarkers = {};
-    const userRoutes = {};
+    if (reports) {
+      Object.entries(reports).forEach(([id, report]) => {
+        const latLng = L.latLng(report.latitude, report.longitude);
+        const icon = emergencyIcons[report.emergencyType.toLowerCase()] || emergencyIcons.fire;
 
-    // Listen to multiple user locations
-    const locationsRef = ref(db, 'locations');
-    onValue(locationsRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data) {
-        const userCount = Object.keys(data).length;
-
-        Object.entries(data).forEach(([userId, coords]) => {
-          const latLng = L.latLng(coords.latitude, coords.longitude);
-
-          // Create or update marker
-          if (userMarkers[userId]) {
-            userMarkers[userId].setLatLng(latLng);
-          } else {
-            userMarkers[userId] = L.marker(latLng, { icon: greenIcon })
-              .addTo(map)
-              .bindPopup(`User: ${userId}`);
-          }
-
-          // Remove old route
-          if (userRoutes[userId]) {
-            map.removeControl(userRoutes[userId]);
-          }
-
-          // Add new route
-          userRoutes[userId] = L.Routing.control({
-            waypoints: [gordonCollegeLatLng, latLng],
-            routeWhileDragging: false,
-            geocoder: L.Control.Geocoder.nominatim(),
-            createMarker: () => null,
-            show: false
-          }).addTo(map);
-        });
-
-        updateStatus(`Tracking ${userCount} user(s)`);
-      } else {
-        updateStatus("No active locations.");
-      }
-    });
-
-
-    // ========== New code added here for live emergency reports ==========
-
-    // Custom icons for emergencies
-    const emergencyIcons = {
-      fire: L.icon({
-        iconUrl: 'fire-icon.png', // supply your fire icon image path
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
-      }),
-      medical: L.icon({
-        iconUrl: 'medical-icon.png', // supply your medical icon image path
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
-      }),
-      accident: L.icon({
-        iconUrl: 'accident-icon.png', // supply your accident icon image path
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
-      }),
-    };
-
-    // Store emergency markers by report id
-    const reportMarkers = {};
-
-    const reportsRef = ref(db, 'reports');
-    onValue(reportsRef, (snapshot) => {
-      const reports = snapshot.val();
-
-      // Remove previous markers for removed reports
-      for (const id in reportMarkers) {
-        if (!reports || !reports[id]) {
-          map.removeLayer(reportMarkers[id]);
-          delete reportMarkers[id];
+        let popupContent = `<b>Emergency: ${report.emergencyType}</b><br>`;
+        popupContent += `<b>Message:</b> ${report.message || 'No message'}<br>`;
+        if (report.imageUrl) {
+          popupContent += `<img src="${report.imageUrl}" alt="Image" style="max-width:150px; max-height:150px;">`;
         }
-      }
+        popupContent += `<br><small>${new Date(report.timestamp).toLocaleString()}</small>`;
 
-      if (reports) {
-        Object.entries(reports).forEach(([id, report]) => {
-          const latLng = L.latLng(report.latitude, report.longitude);
+        if (reportMarkers[id]) {
+          reportMarkers[id].setLatLng(latLng);
+        } else {
+          reportMarkers[id] = L.marker(latLng, { icon }).addTo(map).bindPopup(popupContent);
+        }
+      });
+    }
+  });
 
-          // If marker exists update, else create new
-          if (reportMarkers[id]) {
-            reportMarkers[id].setLatLng(latLng);
-          } else {
-            const icon = emergencyIcons[report.emergencyType.toLowerCase()] || emergencyIcons.fire;
+  // ======= Command Sender Logic =======
+  const sendCommandBtn = document.getElementById('sendCommandBtn');
+  const targetUserIdInput = document.getElementById('targetUserId');
+  const commandTypeSelect = document.getElementById('commandType');
+  const commandMessageInput = document.getElementById('commandMessage');
 
-            let popupContent = `<b>Emergency: ${report.emergencyType}</b><br>`;
-            popupContent += `<b>Message:</b> ${report.message || 'No message'}<br>`;
+  sendCommandBtn.addEventListener('click', async () => {
+    const userId = targetUserIdInput.value.trim();
+    const type = commandTypeSelect.value;
+    const message = commandMessageInput.value.trim();
 
-            if (report.imageUrl) {
-              popupContent += `<img src="${report.imageUrl}" alt="Report Image" style="max-width:150px; max-height:150px; margin-top:5px;">`;
-            }
+    if (!userId || !message) {
+      alert("User ID and message required.");
+      return;
+    }
 
-            popupContent += `<br><small>Reported at: ${new Date(report.timestamp).toLocaleString()}</small>`;
-
-            reportMarkers[id] = L.marker(latLng, { icon }).addTo(map).bindPopup(popupContent);
-          }
-        });
-      }
+    const commandRef = ref(db, 'adminCommands/' + userId);
+    await set(commandRef, {
+      type,
+      message,
+      timestamp: Date.now()
     });
 
-  </script>
+    alert(`Command sent to ${userId}`);
+    targetUserIdInput.value = '';
+    commandMessageInput.value = '';
+  });
+</script>
+
 </body>
 </html>

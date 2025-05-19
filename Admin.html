@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
+  <title>Admin Panel - Emergency Reports</title>
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
@@ -15,8 +15,32 @@
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"/>
 
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
   <style>
-    #map { height: 100vh; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    #map { 
+      height: 100vh; 
+      width: 70%;
+      float: left;
+    }
+    
+    #reports-panel {
+      width: 30%;
+      height: 100vh;
+      float: right;
+      overflow-y: auto;
+      background: #f5f5f5;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    
     .status {
       position: absolute;
       top: 10px;
@@ -25,17 +49,135 @@
       padding: 8px;
       border-radius: 5px;
       z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .report-card {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .report-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .report-card.active {
+      border-left: 4px solid #e74c3c;
+      background: #fff9f9;
+    }
+    
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .report-type {
+      font-weight: bold;
+      color: #e74c3c;
+      text-transform: capitalize;
+    }
+    
+    .report-time {
+      font-size: 0.8em;
+      color: #777;
+    }
+    
+    .report-user {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    
+    .report-message {
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .report-image {
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    
+    .panel-header {
+      padding: 15px;
+      background: #e74c3c;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      margin: -10px -10px 10px -10px;
+    }
+    
+    .no-reports {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    
+    .action-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    
+    .view-btn {
+      background: #3498db;
+      color: white;
+    }
+    
+    .resolve-btn {
+      background: #2ecc71;
+      color: white;
+    }
+    
+    .clearfix::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+    
+    @media (max-width: 768px) {
+      #map, #reports-panel {
+        width: 100%;
+        height: 50vh;
+      }
     }
   </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div class="clearfix">
+  <div id="map"></div>
+  <div id="reports-panel">
+    <div class="panel-header">
+      <i class="fas fa-exclamation-triangle"></i> Emergency Reports
+    </div>
+    <div id="reports-list"></div>
+  </div>
+</div>
+
 <div id="status" class="status">Initializing...</div>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-  import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
+  import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
@@ -50,6 +192,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  // Initialize map
   const map = L.map('map').setView([14.832, 120.282], 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -66,7 +209,9 @@
   const userMarkers = {};
   const reportMarkers = {};
   const routeControls = {};
+  const userLocations = {};
 
+  // Icons configuration
   const greenIcon = L.icon({
     iconUrl: 'alert.png',
     iconSize: [60, 60],
@@ -95,8 +240,6 @@
     }),
   };
 
-  const userLocations = {};
-
   // --- 1. Track Live User Locations ---
   const locationsRef = ref(db, 'locations');
   onValue(locationsRef, (snapshot) => {
@@ -110,61 +253,145 @@
       if (userMarkers[userId]) {
         userMarkers[userId].setLatLng(latLng);
       } else {
-        userMarkers[userId] = L.marker(latLng, { icon: greenIcon }).addTo(map).bindPopup(`User: ${userId}`);
+        userMarkers[userId] = L.marker(latLng, { icon: greenIcon })
+          .addTo(map)
+          .bindPopup(`User: ${userId}`);
       }
     });
 
     updateStatus(`Tracking ${Object.keys(userMarkers).length} users`);
   });
 
-  // --- 2. Show Reports + Route from Gordon College ---
+  // --- 2. Handle Emergency Reports ---
   const reportsRef = ref(db, 'reports');
   onValue(reportsRef, (snapshot) => {
     const reports = snapshot.val();
-    if (!reports) return;
-
-    for (const id in reportMarkers) {
-      if (!reports[id]) {
-        map.removeLayer(reportMarkers[id]);
-        map.removeControl(routeControls[id]);
-        delete reportMarkers[id];
-        delete routeControls[id];
-      }
+    const reportsList = document.getElementById('reports-list');
+    
+    if (!reports) {
+      reportsList.innerHTML = '<div class="no-reports">No active emergency reports</div>';
+      return;
     }
 
+    // Clear existing reports
+    reportsList.innerHTML = '';
+    
+    // Process each report
     Object.entries(reports).forEach(([reportId, report]) => {
+      // Skip if report is marked as resolved
+      if (report.status === 'resolved') return;
+      
       const latLng = L.latLng(report.latitude, report.longitude);
       const icon = emergencyIcons[report.emergencyType?.toLowerCase()] || emergencyIcons.fire;
-
-      let popup = `<b>Emergency: ${report.emergencyType}</b><br>`;
-      popup += `<b>User:</b> ${report.userId || 'N/A'}<br>`;
-      popup += `<b>Message:</b> ${report.message || 'No message'}<br>`;
-      if (report.imageUrl) {
-        popup += `<img src="${report.imageUrl}" style="max-width:150px; max-height:150px;" /><br>`;
-      }
-      popup += `<small>${new Date(report.timestamp).toLocaleString()}</small>`;
-
+      
+      // Create report card
+      const reportCard = document.createElement('div');
+      reportCard.className = 'report-card';
+      reportCard.dataset.reportId = reportId;
+      
+      // Format timestamp
+      const reportDate = new Date(report.timestamp);
+      const formattedTime = reportDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const formattedDate = reportDate.toLocaleDateString();
+      
+      // Populate report card
+      reportCard.innerHTML = `
+        <div class="report-header">
+          <span class="report-type">${report.emergencyType}</span>
+          <span class="report-time">${formattedDate} ${formattedTime}</span>
+        </div>
+        <div class="report-user">Reported by: ${report.userId || 'Anonymous'}</div>
+        <div class="report-message">${report.message || 'No additional details provided'}</div>
+        ${report.imageUrl ? `<img src="${report.imageUrl}" class="report-image" />` : ''}
+        <div class="action-buttons">
+          <button class="action-btn view-btn" onclick="focusReport('${reportId}')">
+            <i class="fas fa-map-marker-alt"></i> View
+          </button>
+          <button class="action-btn resolve-btn" onclick="resolveReport('${reportId}')">
+            <i class="fas fa-check"></i> Resolve
+          </button>
+        </div>
+      `;
+      
+      reportsList.appendChild(reportCard);
+      
+      // Create or update map marker
       if (!reportMarkers[reportId]) {
-        reportMarkers[reportId] = L.marker(latLng, { icon }).addTo(map).bindPopup(popup);
+        reportMarkers[reportId] = L.marker(latLng, { icon }).addTo(map).bindPopup(`
+          <b>Emergency: ${report.emergencyType}</b><br>
+          <b>User:</b> ${report.userId || 'N/A'}<br>
+          <b>Message:</b> ${report.message || 'No message'}<br>
+          ${report.imageUrl ? `<img src="${report.imageUrl}" style="max-width:150px; max-height:150px;" /><br>` : ''}
+          <small>${reportDate.toLocaleString()}</small>
+        `);
+        
+        // Draw route from Gordon College to report
+        routeControls[reportId] = L.Routing.control({
+          waypoints: [gordonCollegeLatLng, latLng],
+          routeWhileDragging: false,
+          geocoder: L.Control.Geocoder.nominatim(),
+          createMarker: () => null,
+          show: false
+        }).addTo(map);
       } else {
         reportMarkers[reportId].setLatLng(latLng);
       }
-
-      // Draw route from Gordon College to report
-      if (routeControls[reportId]) {
-        map.removeControl(routeControls[reportId]);
-      }
-
-      routeControls[reportId] = L.Routing.control({
-        waypoints: [gordonCollegeLatLng, latLng],
-        routeWhileDragging: false,
-        geocoder: L.Control.Geocoder.nominatim(),
-        createMarker: () => null,
-        show: false
-      }).addTo(map);
+      
+      // Highlight card when marker is clicked
+      reportMarkers[reportId].on('click', () => {
+        document.querySelectorAll('.report-card').forEach(card => {
+          card.classList.remove('active');
+        });
+        reportCard.classList.add('active');
+      });
     });
+    
+    updateStatus(`Showing ${Object.keys(reportMarkers).length} active reports`);
   });
 
+  // Global functions for button actions
+  window.focusReport = function(reportId) {
+    if (reportMarkers[reportId]) {
+      map.setView(reportMarkers[reportId].getLatLng(), 16);
+      
+      // Highlight the card
+      document.querySelectorAll('.report-card').forEach(card => {
+        card.classList.remove('active');
+      });
+      document.querySelector(`.report-card[data-report-id="${reportId}"]`).classList.add('active');
+    }
+  };
+
+  window.resolveReport = function(reportId) {
+    if (confirm('Mark this report as resolved?')) {
+      const updates = {};
+      updates[`reports/${reportId}/status`] = 'resolved';
+      updates[`reports/${reportId}/resolvedAt`] = new Date().toISOString();
+      
+      update(ref(db), updates)
+        .then(() => {
+          // Remove from map
+          if (reportMarkers[reportId]) {
+            map.removeLayer(reportMarkers[reportId]);
+            delete reportMarkers[reportId];
+          }
+          
+          // Remove route
+          if (routeControls[reportId]) {
+            map.removeControl(routeControls[reportId]);
+            delete routeControls[reportId];
+          }
+          
+          // Remove card
+          const card = document.querySelector(`.report-card[data-report-id="${reportId}"]`);
+          if (card) card.remove();
+        })
+        .catch(error => {
+          console.error('Error resolving report:', error);
+          alert('Failed to resolve report. Please try again.');
+        });
+    }
+  };
 </script>
 
 </body>

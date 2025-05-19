@@ -202,8 +202,15 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
+  const alertIcon = L.icon({
+    iconUrl: 'alert.gif',
+    iconSize: [32, 32], // size of the icon
+    iconAnchor: [16, 32], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -32] // point from which the popup should open relative to the iconAnchor
+  });
+
   const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-  L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
+  L.marker(gordonCollegeLatLng, { icon: alertIcon }).addTo(map).bindPopup("Gordon College");
 
   const statusEl = document.getElementById('status');
   function updateStatus(msg) {
@@ -351,7 +358,7 @@
       if (reportMarkers[id]) {
         map.removeLayer(reportMarkers[id]);
       }
-      const marker = L.marker([report.latitude, report.longitude]).addTo(map);
+      const marker = L.marker([report.latitude, report.longitude], { icon: alertIcon }).addTo(map);
       const date = new Date(report.timestamp);
       const popupContent = `
         <strong>Type:</strong> ${report.emergencyType || 'Unknown'}<br/>

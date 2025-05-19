@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multi-User Tracking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
 
   <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-  <!-- Leaflet Routing & Geocoder -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <!-- Routing & Geocoder -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"/>
 
   <style>
-    #map {
-      height: 100vh;
-    }
+    #map { height: 100vh; }
     .status {
       position: absolute;
       top: 10px;
@@ -33,23 +31,11 @@
 <body>
 
 <div id="map"></div>
-<div id="status" class="status">Waiting for data...</div>
-
-<!-- Command UI -->
-<div style="position:absolute; top:10px; right:10px; z-index:1100; background:#fff; padding:10px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.3); width: 250px;">
-  <h3>Send Command</h3>
-  <input id="targetUserId" type="text" placeholder="User ID" style="width:100%; margin-bottom:6px;" />
-  <select id="commandType" style="width:100%; margin-bottom:6px;">
-    <option value="ALERT">Alert (popup)</option>
-    <option value="CHAT">Chat (status)</option>
-  </select>
-  <textarea id="commandMessage" rows="3" placeholder="Message" style="width:100%; margin-bottom:6px;"></textarea>
-  <button id="sendCommandBtn" style="width:100%;">Send</button>
-</div>
+<div id="status" class="status">Initializing...</div>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-  import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
+  import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
@@ -72,6 +58,15 @@
   const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
   L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
 
+  const statusEl = document.getElementById('status');
+  function updateStatus(msg) {
+    statusEl.textContent = msg;
+  }
+
+  const userMarkers = {};
+  const reportMarkers = {};
+  const routeControls = {};
+
   const greenIcon = L.icon({
     iconUrl: 'alert.png',
     iconSize: [60, 60],
@@ -79,50 +74,6 @@
     popupAnchor: [0, -60]
   });
 
-  const statusElement = document.getElementById('status');
-  function updateStatus(msg) {
-    statusElement.textContent = msg;
-  }
-
-  const userMarkers = {};
-  const userRoutes = {};
-
-  const locationsRef = ref(db, 'locations');
-  onValue(locationsRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      const userCount = Object.keys(data).length;
-      Object.entries(data).forEach(([userId, coords]) => {
-        const latLng = L.latLng(coords.latitude, coords.longitude);
-
-        if (userMarkers[userId]) {
-          userMarkers[userId].setLatLng(latLng);
-        } else {
-          userMarkers[userId] = L.marker(latLng, { icon: greenIcon })
-            .addTo(map)
-            .bindPopup(`User: ${userId}`);
-        }
-
-        if (userRoutes[userId]) {
-          map.removeControl(userRoutes[userId]);
-        }
-
-        userRoutes[userId] = L.Routing.control({
-          waypoints: [gordonCollegeLatLng, latLng],
-          routeWhileDragging: false,
-          geocoder: L.Control.Geocoder.nominatim(),
-          createMarker: () => null,
-          show: false
-        }).addTo(map);
-      });
-
-      updateStatus(`Tracking ${userCount} user(s)`);
-    } else {
-      updateStatus("No active locations.");
-    }
-  });
-
-  // Emergency icons and reports
   const emergencyIcons = {
     fire: L.icon({
       iconUrl: 'fire-icon.png',
@@ -144,66 +95,76 @@
     }),
   };
 
-  const reportMarkers = {};
+  const userLocations = {};
+
+  // --- 1. Track Live User Locations ---
+  const locationsRef = ref(db, 'locations');
+  onValue(locationsRef, (snapshot) => {
+    const locations = snapshot.val();
+    if (!locations) return;
+
+    Object.entries(locations).forEach(([userId, data]) => {
+      const latLng = L.latLng(data.latitude, data.longitude);
+      userLocations[userId] = latLng;
+
+      if (userMarkers[userId]) {
+        userMarkers[userId].setLatLng(latLng);
+      } else {
+        userMarkers[userId] = L.marker(latLng, { icon: greenIcon }).addTo(map).bindPopup(`User: ${userId}`);
+      }
+    });
+
+    updateStatus(`Tracking ${Object.keys(userMarkers).length} users`);
+  });
+
+  // --- 2. Show Reports + Route from Gordon College ---
   const reportsRef = ref(db, 'reports');
   onValue(reportsRef, (snapshot) => {
     const reports = snapshot.val();
+    if (!reports) return;
 
     for (const id in reportMarkers) {
-      if (!reports || !reports[id]) {
+      if (!reports[id]) {
         map.removeLayer(reportMarkers[id]);
+        map.removeControl(routeControls[id]);
         delete reportMarkers[id];
+        delete routeControls[id];
       }
     }
 
-    if (reports) {
-      Object.entries(reports).forEach(([id, report]) => {
-        const latLng = L.latLng(report.latitude, report.longitude);
-        const icon = emergencyIcons[report.emergencyType.toLowerCase()] || emergencyIcons.fire;
+    Object.entries(reports).forEach(([reportId, report]) => {
+      const latLng = L.latLng(report.latitude, report.longitude);
+      const icon = emergencyIcons[report.emergencyType?.toLowerCase()] || emergencyIcons.fire;
 
-        let popupContent = `<b>Emergency: ${report.emergencyType}</b><br>`;
-        popupContent += `<b>Message:</b> ${report.message || 'No message'}<br>`;
-        if (report.imageUrl) {
-          popupContent += `<img src="${report.imageUrl}" alt="Image" style="max-width:150px; max-height:150px;">`;
-        }
-        popupContent += `<br><small>${new Date(report.timestamp).toLocaleString()}</small>`;
+      let popup = `<b>Emergency: ${report.emergencyType}</b><br>`;
+      popup += `<b>User:</b> ${report.userId || 'N/A'}<br>`;
+      popup += `<b>Message:</b> ${report.message || 'No message'}<br>`;
+      if (report.imageUrl) {
+        popup += `<img src="${report.imageUrl}" style="max-width:150px; max-height:150px;" /><br>`;
+      }
+      popup += `<small>${new Date(report.timestamp).toLocaleString()}</small>`;
 
-        if (reportMarkers[id]) {
-          reportMarkers[id].setLatLng(latLng);
-        } else {
-          reportMarkers[id] = L.marker(latLng, { icon }).addTo(map).bindPopup(popupContent);
-        }
-      });
-    }
-  });
+      if (!reportMarkers[reportId]) {
+        reportMarkers[reportId] = L.marker(latLng, { icon }).addTo(map).bindPopup(popup);
+      } else {
+        reportMarkers[reportId].setLatLng(latLng);
+      }
 
-  // ======= Command Sender Logic =======
-  const sendCommandBtn = document.getElementById('sendCommandBtn');
-  const targetUserIdInput = document.getElementById('targetUserId');
-  const commandTypeSelect = document.getElementById('commandType');
-  const commandMessageInput = document.getElementById('commandMessage');
+      // Draw route from Gordon College to report
+      if (routeControls[reportId]) {
+        map.removeControl(routeControls[reportId]);
+      }
 
-  sendCommandBtn.addEventListener('click', async () => {
-    const userId = targetUserIdInput.value.trim();
-    const type = commandTypeSelect.value;
-    const message = commandMessageInput.value.trim();
-
-    if (!userId || !message) {
-      alert("User ID and message required.");
-      return;
-    }
-
-    const commandRef = ref(db, 'adminCommands/' + userId);
-    await set(commandRef, {
-      type,
-      message,
-      timestamp: Date.now()
+      routeControls[reportId] = L.Routing.control({
+        waypoints: [gordonCollegeLatLng, latLng],
+        routeWhileDragging: false,
+        geocoder: L.Control.Geocoder.nominatim(),
+        createMarker: () => null,
+        show: false
+      }).addTo(map);
     });
-
-    alert(`Command sent to ${userId}`);
-    targetUserIdInput.value = '';
-    commandMessageInput.value = '';
   });
+
 </script>
 
 </body>

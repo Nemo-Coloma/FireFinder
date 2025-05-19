@@ -68,7 +68,7 @@
     }
     
     .report-card.active {
-      border-left: 4px solid #e74c3c;
+      border-left: 4px solid #710b00;
       background: #fff9f9;
     }
     
@@ -182,7 +182,7 @@
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
@@ -220,6 +220,9 @@
 
   const reportsList = document.getElementById('reports-list');
 
+  let routeControl = null;
+  let reportMarkers = {};
+
   function createReportCard(report, id) {
     const reportCard = document.createElement('div');
     reportCard.className = 'report-card';
@@ -254,7 +257,74 @@
       reportCard.appendChild(img);
     }
 
+    // Add accomplished button
+    const accomplishedBtn = document.createElement('button');
+    accomplishedBtn.textContent = 'Accomplished';
+    accomplishedBtn.className = 'action-btn resolve-btn';
+    accomplishedBtn.style.marginTop = '10px';
+    reportCard.appendChild(accomplishedBtn);
+
+    // Event listener for accomplished button
+    accomplishedBtn.addEventListener('click', async (e) => {
+      e.stopPropagation(); // prevent triggering report card click
+      if (!confirm('Mark this report as accomplished?')) return;
+      try {
+        const reportRef = doc(db, 'reports', id);
+        await updateDoc(reportRef, {
+          status: 'resolved',
+          resolvedAt: new Date().toISOString()
+        });
+        // Remove marker from map
+        if (reportMarkers[id]) {
+          map.removeLayer(reportMarkers[id]);
+          delete reportMarkers[id];
+        }
+        // Remove report card from list
+        reportCard.remove();
+        updateStatus('Report marked as accomplished.');
+      } catch (error) {
+        console.error('Failed to mark accomplished:', error);
+        alert('Failed to mark as accomplished: ' + error.message);
+      }
+    });
+
+    // Event listener for report card click to show route
+    reportCard.addEventListener('click', () => {
+      // Remove active class from all cards
+      document.querySelectorAll('.report-card.active').forEach(card => card.classList.remove('active'));
+      reportCard.classList.add('active');
+
+      // Remove existing route if any
+      if (routeControl) {
+        map.removeControl(routeControl);
+        routeControl = null;
+      }
+
+      // Add routing from Gordon College to report location
+      routeControl = L.Routing.control({
+        waypoints: [
+          gordonCollegeLatLng,
+          L.latLng(report.latitude, report.longitude)
+        ],
+        routeWhileDragging: false,
+        show: true,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        createMarker: function(i, waypoint) {
+          return L.marker(waypoint.latLng);
+        }
+      }).addTo(map);
+    });
+
     return reportCard;
+  }
+
+  const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
+
+  function clearMarkers() {
+    Object.values(reportMarkers).forEach(marker => map.removeLayer(marker));
+    reportMarkers = {};
   }
 
   function processReports(reports) {
@@ -276,33 +346,54 @@
       }
       const card = createReportCard(report, id);
       reportsList.appendChild(card);
+
+      // Add marker to map
+      if (reportMarkers[id]) {
+        map.removeLayer(reportMarkers[id]);
+      }
+      const marker = L.marker([report.latitude, report.longitude]).addTo(map);
+      const date = new Date(report.timestamp);
+      const popupContent = `
+        <strong>Type:</strong> ${report.emergencyType || 'Unknown'}<br/>
+        <strong>Message:</strong> ${report.message || ''}<br/>
+        <strong>Reported at:</strong> ${date.toLocaleString()}
+      `;
+      marker.bindPopup(popupContent);
+      reportMarkers[id] = marker;
+
       validReportsCount++;
     });
 
     updateStatus(`Showing ${validReportsCount} valid reports`);
   }
 
-  const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
   onSnapshot(q, (querySnapshot) => {
+    clearMarkers();
     processReports(querySnapshot.docs);
   }, (error) => {
     console.error('Error fetching reports:', error);
     updateStatus('Error loading reports');
   });
 
-  window.resolveReport = async function(reportId) {
-    if (!confirm('Mark this report as resolved?')) return;
+  // Optional: Add test report button functionality
+  const debugBtn = document.getElementById('debugBtn');
+  debugBtn.addEventListener('click', async () => {
     try {
-      const reportRef = doc(db, 'reports', reportId);
-      await updateDoc(reportRef, {
-        status: 'resolved',
-        resolvedAt: new Date().toISOString()
-      });
+      const newReport = {
+        emergencyType: 'fire',
+        message: 'Test fire report',
+        latitude: 14.832 + (Math.random() - 0.5) * 0.01,
+        longitude: 120.282 + (Math.random() - 0.5) * 0.01,
+        timestamp: new Date().toISOString(),
+        status: 'active'
+      };
+      await addDoc(collection(db, 'reports'), newReport);
+      updateStatus('Test report added');
     } catch (error) {
-      console.error('Resolve failed:', error);
-      alert('Resolution failed: ' + error.message);
+      console.error('Failed to add test report:', error);
+      alert('Failed to add test report: ' + error.message);
     }
-  };
+  });
 </script>
 </body>
 </html>

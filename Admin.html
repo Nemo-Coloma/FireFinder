@@ -18,10 +18,6 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
   <style>
     body {
       margin: 0;
@@ -179,21 +175,26 @@
 
 <div id="status" class="status">Initializing...</div>
 
-<script>
-  // Firebase configuration
+<!-- Added debug button -->
+<button id="debugBtn" style="position:absolute;top:50px;left:10px;z-index:1000;padding:8px;background:#e74c3c;color:white;border:none;border-radius:4px;">
+  Add Test Report
+</button>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+
   const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
-    databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
     projectId: "firefinder-d5c0a",
     storageBucket: "firefinder-d5c0a.appspot.com",
     messagingSenderId: "221428549294",
-    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+    appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
   };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
   // Initialize map
   const map = L.map('map').setView([14.832, 120.282], 14);
@@ -205,157 +206,103 @@
   L.marker(gordonCollegeLatLng).addTo(map).bindPopup("Gordon College");
 
   const statusEl = document.getElementById('status');
-  const reportsList = document.getElementById('reports-list');
-  const reportMarkers = {}; // To store markers for each report
-
   function updateStatus(msg) {
     console.log('Status:', msg);
     statusEl.textContent = msg;
   }
 
-  function formatTimestamp(timestamp) {
-    if (!timestamp) return 'Unknown time';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString();
+  function isValidReport(report) {
+    return report &&
+           typeof report.latitude === 'number' &&
+           typeof report.longitude === 'number' &&
+           report.timestamp;
   }
+
+  const reportsList = document.getElementById('reports-list');
 
   function createReportCard(report, id) {
     const reportCard = document.createElement('div');
     reportCard.className = 'report-card';
     reportCard.dataset.reportId = id;
-    reportCard.onclick = () => focusReport(id);
-    
+
     const header = document.createElement('div');
     header.className = 'report-header';
-    
+
     const type = document.createElement('div');
     type.className = 'report-type';
-    type.textContent = report.emergencyType || 'Emergency';
-    header.appendChild(type);
-    
+    type.textContent = report.emergencyType || 'Unknown';
+
     const time = document.createElement('div');
     time.className = 'report-time';
-    time.textContent = formatTimestamp(report.timestamp);
+    const date = new Date(report.timestamp);
+    time.textContent = date.toLocaleString();
+
+    header.appendChild(type);
     header.appendChild(time);
-    
-    reportCard.appendChild(header);
-    
+
     const message = document.createElement('div');
     message.className = 'report-message';
-    message.textContent = report.message || 'No additional details provided';
+    message.textContent = report.message || '';
+
+    reportCard.appendChild(header);
     reportCard.appendChild(message);
-    
+
     if (report.imageBase64) {
       const img = document.createElement('img');
       img.className = 'report-image';
       img.src = report.imageBase64;
-      img.alt = "Report image";
       reportCard.appendChild(img);
     }
-    
-    const actions = document.createElement('div');
-    actions.className = 'action-buttons';
-    
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'action-btn view-btn';
-    viewBtn.innerHTML = '<i class="fas fa-eye"></i> View';
-    viewBtn.onclick = (e) => {
-      e.stopPropagation();
-      focusReport(id);
-    };
-    actions.appendChild(viewBtn);
-    
-    const resolveBtn = document.createElement('button');
-    resolveBtn.className = 'action-btn resolve-btn';
-    resolveBtn.innerHTML = '<i class="fas fa-check"></i> Resolve';
-    resolveBtn.onclick = (e) => {
-      e.stopPropagation();
-      resolveReport(id);
-    };
-    actions.appendChild(resolveBtn);
-    
-    reportCard.appendChild(actions);
-    
+
     return reportCard;
   }
 
-  function focusReport(reportId) {
-    if (reportMarkers[reportId]) {
-      // Highlight the card
-      document.querySelectorAll('.report-card').forEach(card => {
-        card.classList.remove('active');
-      });
-      document.querySelector(`.report-card[data-report-id="${reportId}"]`).classList.add('active');
-      
-      // Center map on marker
-      map.setView(reportMarkers[reportId].getLatLng(), 16);
+  function processReports(reports) {
+    if (!reports || reports.length === 0) {
+      reportsList.innerHTML = '<div class="no-reports">No active emergency reports</div>';
+      return;
     }
+
+    reportsList.innerHTML = '';
+    let validReportsCount = 0;
+
+    reports.forEach(doc => {
+      const report = doc.data();
+      const id = doc.id;
+      if (report.status === 'resolved') return;
+      if (!isValidReport(report)) {
+        console.warn('Invalid report:', id, report);
+        return;
+      }
+      const card = createReportCard(report, id);
+      reportsList.appendChild(card);
+      validReportsCount++;
+    });
+
+    updateStatus(`Showing ${validReportsCount} valid reports`);
   }
 
-  function resolveReport(reportId) {
+  const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
+  onSnapshot(q, (querySnapshot) => {
+    processReports(querySnapshot.docs);
+  }, (error) => {
+    console.error('Error fetching reports:', error);
+    updateStatus('Error loading reports');
+  });
+
+  window.resolveReport = async function(reportId) {
     if (!confirm('Mark this report as resolved?')) return;
-    
-    db.collection('reports').doc(reportId).update({
-      status: 'resolved',
-      resolvedAt: new Date()
-    }).then(() => {
-      console.log('Report marked as resolved');
-      if (reportMarkers[reportId]) {
-        map.removeLayer(reportMarkers[reportId]);
-        delete reportMarkers[reportId];
-      }
-    }).catch(error => {
-      console.error('Error resolving report:', error);
-      alert('Failed to resolve report: ' + error.message);
-    });
-  }
-
-  // Listen for new reports
-  db.collection('reports')
-    .orderBy('timestamp', 'desc')
-    .onSnapshot(snapshot => {
-      reportsList.innerHTML = '';
-      
-      snapshot.docChanges().forEach(change => {
-        const report = change.doc.data();
-        const reportId = change.doc.id;
-        
-        if (change.type === 'removed') {
-          // Remove marker if report was deleted
-          if (reportMarkers[reportId]) {
-            map.removeLayer(reportMarkers[reportId]);
-            delete reportMarkers[reportId];
-          }
-          return;
-        }
-        
-        // Skip resolved reports
-        if (report.status === 'resolved') return;
-        
-        // Create or update marker
-        if (!reportMarkers[reportId] && report.latitude && report.longitude) {
-          const marker = L.marker([report.latitude, report.longitude])
-            .addTo(map)
-            .bindPopup(`<b>${report.emergencyType || 'Emergency'}</b><br>${report.message || ''}`);
-          
-          reportMarkers[reportId] = marker;
-        }
-        
-        // Add report card
-        const card = createReportCard(report, reportId);
-        reportsList.appendChild(card);
+    try {
+      const reportRef = doc(db, 'reports', reportId);
+      await updateDoc(reportRef, {
+        status: 'resolved',
+        resolvedAt: new Date().toISOString()
       });
-      
-      if (snapshot.empty) {
-        reportsList.innerHTML = '<div class="no-reports">No active emergency reports</div>';
-      }
-      
-      updateStatus(`Loaded ${snapshot.size} reports`);
-    }, error => {
-      console.error('Error listening to reports:', error);
-      updateStatus('Error loading reports');
-      reportsList.innerHTML = '<div class="no-reports">Error loading reports</div>';
-    });
+    } catch (error) {
+      console.error('Resolve failed:', error);
+      alert('Resolution failed: ' + error.message);
+    }
+  };
 </script>
 </body>
 </html>

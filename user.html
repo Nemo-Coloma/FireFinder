@@ -8,12 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CIVILIAN</title>
 
-    <!-- Firebase & Leaflet Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <!-- ✅ Added this line -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -75,6 +74,24 @@
             border-radius: 4px;
             border: 1px solid #ccc;
         }
+
+        /* Initial hidden state of sidebar moved to style.css */
+        .sidebar {
+            right: -450px; /* Initially off-screen */
+        }
+        /* Style for the close button within the sidebar */
+        .close-sidebar-btn {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 50px;
+            cursor: pointer;
+            color: white; /* Make it visible against the dark background */
+            transition: color 0.3s ease;
+        }
+        .close-sidebar-btn:hover {
+            color: #ffffff; /* Lighter red on hover */
+        }
     </style>
 </head>
 <body>
@@ -120,7 +137,7 @@
     </div>
 
     <div class="sidebar" id="sidebar">
-        <h2 style="text-align: center">WHAT'S THE EMERGENCY?</h2>
+        <span class="close-sidebar-btn" id="close-sidebar-btn">&times;</span> <h2 style="text-align: center">WHAT'S THE EMERGENCY?</h2>
         <div class="button-group">
             <button class="toggle-button" id="fire-btn">FIRE</button>
             <button class="toggle-button" id="accident-btn">ACCIDENT</button>
@@ -131,7 +148,6 @@
         <button class="report-btn" id="report-btn">REPORT to FDP</button>
     </div>
 
-    <!-- Admin Report Display Section -->
     <div id="adminReports">
         <h2>ADMIN REPORTS</h2>
         <div id="reportsContainer"></div>
@@ -140,16 +156,24 @@
     <script>
         const icon = document.getElementById('icon');
         const sidebar = document.getElementById('sidebar');
-        let sidebarVisible = false;
-        sidebar.style.right = '0rem';
-        sidebar.style.top = '70px';
-        sidebar.style.height = 'calc(101vh - 10px - 20px)';
+        const closeSidebarBtn = document.getElementById('close-sidebar-btn'); // Get the new close button
+        let sidebarVisible = false; // Sidebar starts hidden
+
+        // Toggle sidebar when the icon is clicked
         icon.addEventListener('click', () => {
             sidebarVisible = !sidebarVisible;
             sidebar.classList.toggle('visible', sidebarVisible);
             sidebar.style.right = sidebarVisible ? '0' : '-350px';
         });
 
+        // Hide sidebar when the 'X' button is clicked
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebarVisible = false;
+            sidebar.classList.remove('visible');
+            sidebar.style.right = '-350px';
+        });
+
+        // Firebase Configuration (remains unchanged)
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
             authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -189,6 +213,13 @@
                 .openPopup();
             updateStatus('', '');
             addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
+
+            // Make sidebar visible on map click if it's not already
+            if (!sidebarVisible) {
+                sidebarVisible = true;
+                sidebar.classList.add('visible');
+                sidebar.style.right = '0';
+            }
         });
 
         function addRouting(startLat, startLng, endLat, endLng) {

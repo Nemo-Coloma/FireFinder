@@ -6,42 +6,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
         <style>
             html, body {
-                height: 105%;
+                height: 100%; /* Changed to 100% to ensure the image can fill the viewport more effectively */
                 margin: 0;
             }
             body {
-                background-color: #000; /* optional, to avoid white space */
+                background-color: #000;
                 overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
             img {
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-                display: block;
+                width: 100%; /* Make image take full width of its container */
+                height: 100%; /* Make image take full height of its container */
+                
+                
             }
             button{
                  font-family: kanit, sans-serif;
                 justify-content: center;
                 align-items: center;
-                padding:10px 50px; 
-                border:2px solid #fff; 
-                background:transparent; 
-                color:#fff; 
-                cursor:pointer; 
-                user-select:none; 
-                font-size:25px; 
+                padding:10px 50px;
+                border:2px solid #fff;
+                background:transparent;
+                color:#fff;
+                cursor:pointer;
+                user-select:none;
+                font-size:25px;
                 position: absolute;
-                top: 20px;
-                left: 20px;
+                bottom: 5%;
+                left: 70%;
+                transform: translateX(-50%);
                 z-index: 2;
-                margin-left: 68rem;
-                margin-top: 45rem;
             }
             button:hover{
                 color: black;
                 background-color: white;
                 transition: ease-out 0.2s;
             }
+
+            /* Media Queries for Responsiveness */
+            @media only screen and (max-width: 768px) {
+                button {
+                    font-size: 20px;
+                    padding: 8px 30px;
+                    bottom: 8%;
+                }
+            }
+
+            @media only screen and (max-width: 480px) {
+                button {
+                    font-size: 18px;
+                    padding: 6px 20px;
+                    bottom: 10%;
+                }
+            }
+          
+        
         </style>
     </head>
     <body>

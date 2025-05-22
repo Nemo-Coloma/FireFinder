@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
@@ -10,13 +11,13 @@
         html, body {
             height: 100%;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* Consider carefully if this is still desired on small screens */
             font-family: 'Kanit', sans-serif;
         }
 
         body {
             display: flex;
-            flex-direction: row; /* Arrange children in a row */
+            flex-direction: row; /* Arrange children in a row by default */
             width: 100vw;
             height: 100vh;
             background-color: black;
@@ -36,13 +37,13 @@
             max-width: 100%; /* Ensure image scales within its container */
             max-height: 100%; /* Adjust height as needed */
             display: block;
-            margin-right: 55rem;
+            margin-right: 55rem; /* This margin is very large, will be adjusted for mobile */
         }
 
         .form-container {
             display: flex;
             flex-direction: column;
-            width: 350px;
+            width: 350px; /* Fixed width, will be adjusted for mobile */
             margin-left: -70px; /* Add space between the logo and form */
             padding: 20px; /* Add some padding around the form */
         }
@@ -108,6 +109,76 @@
             font-size: 0.9rem;
             text-align: center;
         }
+
+        /* ------------------- Media Queries for Responsiveness ------------------- */
+
+        /* For screens smaller than 768px (typical tablet portrait and phones) */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Stack elements vertically on smaller screens */
+                overflow-y: auto; /* Allow scrolling if content overflows on small screens */
+                height: auto; /* Allow body to adjust height based on content */
+                min-height: 100vh; /* Ensure it still takes full viewport height */
+            }
+
+            .form-container {
+                width: 70%; /* Form takes more width, but with padding */
+                max-width: 200px; /* Keep a max-width to prevent it from getting too wide on slightly larger phones */
+                margin-left: 0; /* Remove negative margin */
+                padding: 15px; /* Adjust padding */
+                margin-bottom: 100px;
+            }
+
+            h2 {
+                font-size: 2.5rem; /* Slightly smaller heading */
+                margin-bottom: 30px;
+            }
+
+            input {
+                margin-bottom: 25px; /* Reduce space between inputs */
+                padding: 12px; /* Slightly less padding */
+                font-size: 15px;
+            }
+
+            button {
+                width: 10rem; /* Make button slightly wider */
+                margin-top: 20px;
+            }
+
+            p {
+                font-size: 0.8rem; /* Smaller text for terms and privacy */
+            }
+        }
+
+        /* For very small screens (e.g., old Android phones, small iPhones) */
+        @media (max-width: 480px) {
+            .left-panel {
+                height: 25%;
+            }
+
+            .left-panel img {
+                max-width: 60%; /* Slightly larger logo for very small screens */
+            }
+
+            .form-container {
+                width: 95%; /* Make form even wider on very small screens */
+                padding: 10px;
+            }
+
+            h2 {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+
+            input {
+                margin-bottom: 20px;
+                padding: 10px;
+            }
+
+            button {
+                width: 9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -143,6 +214,8 @@
             if (email === "adminfdp@gmail.com" && password === "123456") {
                 window.location.href = "Admin.html";
             } else if (email && password) {
+                // In a real application, you'd send this to a server for authentication.
+                // For this example, any non-admin email/password combination redirects to user.html
                 window.location.href = "user.html";
             } else {
                 alert("Please enter email and password.");

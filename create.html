@@ -1,176 +1,277 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Create Account</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Kanit', sans-serif;
-      background-color: black;
-    }
-    body {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
-      align-items: center;
-    }
-    .left-side {
-      width: 50%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-    .left-side img {
-      max-width: 80%;
-      height: auto;
-      object-fit: contain;
-      margin-right: 5rem;
-    }
-    .right-side {
-      width: 50%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .material-symbols-outlined {
-      color: white;
-      font-size: 48px;
-      cursor: pointer;
-      border-radius: 50%;
-      position: absolute;
-      top: 20px;
-      left: 50px;
-    }
-    .material-symbols-outlined:hover {
-      color: rgb(23, 23, 23);
-      background-color: #ebebeb;
-      transition: transform 0.3s ease;
-      transform: scale(1.1);
-    }
-    #create-account-form {
-      display: flex;
-      flex-direction: column;
-      width: 350px;
-      margin-right: 3rem;
-    }
-    #create-account-form h2 {
-      text-align: center;
-      color: white;
-      font-weight: 500;
-      font-size: 3rem;
-      margin-bottom: 30px;
-      white-space: nowrap;
-    }
-    #create-account-form input {
-      background: radial-gradient(circle, #242424 0%, #313131 90%);
-      margin-bottom: 20px;
-      padding: 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-      color: white;
-    }
-    #create-account-form button {
-      margin-top: 20px;
-      padding: 10px;
-      font-size: 18px;
-      background-color: white;
-      color: black;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      width: 10rem;
-      margin-left: auto;
-      margin-right: auto;
-      font-weight: 500;
-    }
-    #create-account-form button:hover {
-      background-color: #4c4b4b;
-      color: aliceblue;
-    }
-  </style>
+    <title>Create Account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_circle_left" />
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Consider carefully on mobile */
+            font-family: 'Kanit', sans-serif;
+        }
+        body {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            align-items: center; /* Center items vertically */
+        }
+
+        .left-side {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .left-side img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            margin-right: 20rem;
+        }
+
+        .right-side {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 200,
+            'GRAD' 0,
+            'opsz' 24;
+            color: white;
+            font-size: 48px;
+            cursor: pointer;
+            height: 50px;
+            border-radius: 110px;
+            display: block;
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            z-index: 10;
+        }
+        .material-symbols-outlined:hover {
+            color: rgb(23, 23, 23);
+            background-color: #ebebeb;
+            transition: transform 0.3s ease;
+            transform-origin: center;
+            transform: scale(1);
+        }
+
+        #create-account-form {
+            display: flex;
+            flex-direction: column;
+            width: 350px;
+            margin-right: 17rem;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #create-account-form h2 {
+            text-align: center;
+            font-family: kanit, sans-serif;
+            color: white;
+            font-weight: 500;
+            font-size: 4rem;
+            margin-bottom: 50px;
+            white-space: nowrap;
+            margin-right: 30rem;
+        }
+        #create-account-form input {
+            background: radial-gradient(circle,rgba(36, 36, 36, 1) 0%, rgb(49, 49, 49) 90%);
+            font-family: kanit, sans-serif;
+            margin-bottom: 35px;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        #create-account-form button {
+            margin-top: 30px;
+            padding: 10px;
+            font-size: 18px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 1px;
+            width: 10rem;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 500;
+            font-family: kanit, sans-serif;
+        }
+        #create-account-form button:hover {
+            background-color: #4c4b4b;
+            color: aliceblue;
+        }
+        #create-account-form .link {
+            font-family: kanit, sans-serif;
+            color: rgb(175, 175, 175);
+            cursor: pointer;
+            text-align: center;
+            text-decoration: underline;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Media Queries for Responsiveness (No Image on Mobile) --- */
+
+        /* For screens smaller than 768px (typical tablet portrait and phones) */
+        @media (max-width: 768px) {
+            .left-side {
+                display: none; /* Hide the left panel (image) on mobile */
+            }
+
+            body {
+                flex-direction: column; /* Stack elements vertically (though only right-side is visible) */
+                overflow-y: auto; /* Allow scrolling if content overflows */
+                height: auto;
+                min-height: 100vh;
+                justify-content: flex-start; /* Align to the top */
+            }
+
+            .right-side {
+                width: 100%; /* Make the right panel take full width */
+                height: auto;
+                padding-bottom: 20px;
+                margin-top: 50px; /* Add space at the top since the logo is gone */
+            }
+
+            .material-symbols-outlined {
+                font-size: 40px;
+                top: 20px;
+                left: 20px;
+                position: fixed; /* Keep the arrow fixed at the top-left of the viewport */
+                background-color: transparent; /* Ensure no background from hover on fixed element */
+                border-radius: 0; /* Remove border-radius on fixed element if it causes issues */
+            }
+            .material-symbols-outlined:hover {
+                background-color: #ebebeb; /* Re-apply hover background */
+                border-radius: 110px; /* Re-apply border-radius on hover */
+            }
+
+            #create-account-form {
+                width: 90%;
+                max-width: 400px;
+                margin: 0 auto;
+                padding: 15px;
+            }
+
+            #create-account-form h2 {
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+                white-space: normal;
+                margin-right: 0;
+            }
+
+            #create-account-form input {
+                margin-bottom: 20px;
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            #create-account-form button {
+                width: 10rem;
+                margin-top: 20px;
+            }
+        }
+
+        /* For very small screens */
+        @media (max-width: 480px) {
+            .material-symbols-outlined {
+                font-size: 36px;
+                top: 15px;
+                left: 15px;
+            }
+
+            #create-account-form {
+                width: 95%;
+                padding: 10px;
+            }
+
+            #create-account-form h2 {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+
+            #create-account-form input {
+                margin-bottom: 15px;
+                padding: 10px;
+            }
+
+            #create-account-form button {
+                width: 9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="left-side">
-    <img src="new logo.png" alt="Logo" />
-  </div>
-  <div class="right-side">
-    <a href="login.html">
-      <span class="material-symbols-outlined">arrow_circle_left</span>
-    </a>
-    <form id="create-account-form">
-      <h2>Create Account</h2>
-      <input type="text" id="first-name" placeholder="First Name" required />
-      <input type="text" id="last-name" placeholder="Last Name" required />
-      <input type="email" id="create-email" placeholder="Email" required />
-      <input type="tel" id="phone-number" placeholder="Phone Number" required />
-      <input type="password" id="create-password" placeholder="Password" required />
-      <input type="password" id="confirm-password" placeholder="Confirm Password" required />
-      <button type="submit">Sign Up</button>
-    </form>
-  </div>
+    <div class="left-side">
+        <img src="new logo.png" alt="Logo">
+    </div>
+    <div class="right-side">
+        <a href="login.html" class="material-symbols-outlined" id="arrow-button">
+            arrow_circle_left
+        </a>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      sendEmailVerification
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        <form id="create-account-form">
+            <h2>Create Account</h2>
+            <input type="text" id="first-name" placeholder="First Name" required>
+            <input type="text" id="last-name" placeholder="Last Name" required>
+            <input type="email" id="create-email" placeholder="Email" required>
+            <input type="tel" id="phone-number" placeholder="Phone Number" required>
+            <input type="password" id="create-password" placeholder="Password" required>
+            <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
-      authDomain: "firefinder-d5c0a.firebaseapp.com",
-      databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
-      projectId: "firefinder-d5c0a",
-      storageBucket: "firefinder-d5c0a.firebasestorage.app",
-      messagingSenderId: "221428549294",
-      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
-      measurementId: "G-9R21WL5VVT"
-    };
+    <script>
+        const createAccountForm = document.getElementById('create-account-form');
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
+        createAccountForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-    const createAccountForm = document.getElementById("create-account-form");
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const email = document.getElementById('create-email').value.trim();
+            const phoneNumber = document.getElementById('phone-number').value.trim();
+            const password = document.getElementById('create-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
 
-    createAccountForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
 
-      const email = document.getElementById("create-email").value;
-      const password = document.getElementById("create-password").value;
-      const confirmPassword = document.getElementById("confirm-password").value;
-
-      if (password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-      }
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        await sendEmailVerification(user);
-        alert("Account created! A verification email has been sent.");
-
-        window.location.href = "login.html";
-      } catch (error) {
-        alert("Error: " + error.message);
-        console.error(error);
-      }
-    });
-  </script>
+            // Basic validation (you'd typically do more robust validation and server-side handling)
+            if (firstName && lastName && email && phoneNumber && password) {
+                alert('Account created successfully (simulated)!');
+                // In a real application, you would send this data to a server
+                // and then redirect the user or perform other actions.
+                window.location.href = "login.html"; // Redirect back to login after "creation"
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+    </script>
 </body>
 </html>

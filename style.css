@@ -101,27 +101,30 @@ body {
 }
 
 /* Sidebar styles */
+/* Sidebar styles */
 .sidebar {
     position: fixed;
     top: 70px; /* Start below the rectangle */
-    right: -350px; /* More to the left when hidden (full width off-screen) */
+    right: -350px; /* Initially hidden: positioned off-screen to the right by its own width */
     width: 350px;
-    height: calc(100vh - 70px - 20px); /* Shorter height (viewport - header - some extra) */
+    height: calc(100vh - 70px - 20px);
     background-color: #0e0e0e;
     color: rgb(240, 0, 0);
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    transition: right 0.3s ease;
+    transition: right 0.3s ease; /* Smooth transition for the 'right' property */
     display: flex;
     flex-direction: column;
-    padding: 10px 20px; /* Adjust padding for shorter height */
+    padding: 10px 20px;
     z-index: 1000;
     font-size: 25px;
-    
 }
 
 .sidebar.visible {
-    right: 0; /* Position when visible */
+    right: 0; /* When 'visible' class is added, it slides into view on the right */
 }
+
+/* Keep other sidebar styles as they are */
+/* ... */
 
 .sidebar .button-group {
     display: block; /* Changed from flex to block */
@@ -258,10 +261,6 @@ body {
         padding: 10px;
     }
 
-    .map-container {
-        height: calc(100vh - 50px);
-    }
-
     #map {
         border-radius: 5px;
     }
@@ -274,4 +273,52 @@ body {
         padding: 5px;
 
     }
+    .sidebar {
+        width: 50%; /* Make sidebar take up more width on smaller screens */
+        right: -80%; /* Adjust initial hidden position */
+        ;
+    }
+
+    .sidebar.visible {
+        right: 0;
+    }
+
+    /* Adjust the main content to not be obscured by sidebar on smaller screens */
+    .map-container {
+        width: 100vw; /* Map takes full width on small screens */
+        transition: none; /* No transition for map width on small screens */
+    }
+    .sidebar .toggle-button {
+    /* flex: 1;  Removed flex property */
+    /* margin: 0 5px; */
+    margin-bottom: 10px;  /* Added vertical spacing */
+    padding: 8px 0;
+    background: linear-gradient(180deg, #760000, #270707);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    width: 100%; /* Added width */
+     font-size: 15px;
+}
+.sidebar {
+    position: fixed;
+    top: 70px; /* Start below the rectangle */
+    right: -350px; /* Initially hidden: positioned off-screen to the right by its own width */
+    width: 100px;
+    height: calc(100vh - 70px - 20px);
+    background-color: #0e0e0e;
+    color: rgb(240, 0, 0);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease; /* Smooth transition for the 'right' property */
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    z-index: 1000;
+    font-size: 15px;
+}
 }

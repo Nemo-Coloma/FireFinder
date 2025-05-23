@@ -1,12 +1,27 @@
 
 
     /* General Styles */
-  html, body {
+html, body {
   height: 100%;
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #f5f6fa;
   overflow: hidden; /* Prevent scrolling */
+}
+
+.hidden-sidebar {
+  display: none !important;
+}
+
+#reports-panel {
+  transition: transform 0.3s ease-in-out;
+}
+
+.slide-out {
+  transform: translateX(100%);
+  /* Optionally hide overflow and pointer events when slid out */
+  pointer-events: none;
+  opacity: 0;
 }
 
    .map-container {
@@ -104,21 +119,25 @@
 }
 
 .rectangle img:nth-child(2) {
-    margin-left: 75px;
+    margin-left: 105px;
 }
 
 /* Dropdown Menu */
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
+ .dropdown {
+      position: absolute; /* Changed to absolute for positioning inside fixed header */
+      top: 50%; /* Center vertically */
+      right: 40px; /* Position from the right */ /* <--- CHANGE THIS LINE */
+      transform: translateY(-50%); /* Adjust for vertical centering */
+      display: inline-block;
+      z-index: 1001; /* Ensure dropdown is above other fixed elements */
+    }
 
 .dropdown img#icon {
     cursor: pointer;
     height: 35px;
     position: absolute;
-    top: 50%;
-    left: 0px; /* Move the icon explicitly to the left */
+     top: 50%;
+   right: 10px; /* Move the icon explicitly to the left */
     transform: translateY(-50%);
     z-index: 4;
 }

@@ -163,14 +163,14 @@
         icon.addEventListener('click', () => {
             sidebarVisible = !sidebarVisible;
             sidebar.classList.toggle('visible', sidebarVisible);
-            sidebar.style.right = sidebarVisible ? '0' : '-350px';
+            sidebar.style.right = sidebarVisible ? '0' : '-700px';
         });
 
         // Hide sidebar when the 'X' button is clicked
         closeSidebarBtn.addEventListener('click', () => {
             sidebarVisible = false;
             sidebar.classList.remove('visible');
-            sidebar.style.right = '-350px';
+            sidebar.style.right = '-500px';
         });
 
         // Firebase Configuration (remains unchanged)

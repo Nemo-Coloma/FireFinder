@@ -46,35 +46,14 @@
                 transition: ease-out 0.1s;
             }
 
-            /* Media Queries for Responsiveness */
-
-            /* Desktop/Laptop (apply the 70% left only for larger screens) */
-            @media only screen and (min-width: 992px) { /* Adjust this breakpoint as needed for your "laptop" size */
-                button {
-                    left: 70%; /* Move to the right on larger screens */
-                    transform: translateX(-50%); /* Still perfectly center horizontally based on its own width */
-                }
-            }
-
-            /* Tablets and smaller */
-            @media only screen and (max-width: 768px) {
-                button {
-                    font-size: 50px;
-                    padding: 8px 30px;
-                    bottom: 8%;
-                    /* No specific left/transform change here, so it stays centered */
-                }
-                img {
-                    width: 130%; /* Make it wider */
-                    margin-left: 20rem; /* Move it to the right */
-                }
-            }
-
+        
+            
+          
             /* Phones */
             @media only screen and (max-width: 480px) {
                 button {
-                    font-size: 30px;
-                    padding: 6px 25px; /* Slightly increase padding to give more room if needed */
+                    font-size: 50px;
+                    padding: 6px 35px; /* Slightly increase padding to give more room if needed */
                     bottom: 10%;
                     /* No specific left/transform change here, so it stays centered */
                 }

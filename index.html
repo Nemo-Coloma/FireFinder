@@ -19,17 +19,16 @@
             img {
                 width: 100%;
                 height: 100%;
-                object-fit:fill;
-           
+                object-fit: cover;
             }
             button{
                 font-family: kanit, sans-serif;
                 justify-content: center;
                 align-items: center;
                 padding:10px 50px;
-                border:2px solid #fff;
-                background:transparent;
-                color:#fff;
+                border:2px solid;
+               border-radius: 10px;
+                color:#650303;
                 cursor:pointer;
                 user-select:none;
                 font-size:25px;
@@ -39,11 +38,12 @@
                 transform: translateX(-50%); /* Default to centered for better mobile behavior */
                 z-index: 2;
                 white-space: nowrap; /* Prevent "Let's Go!" from breaking onto two lines */
+                margin-bottom: 5rem;
             }
             button:hover{
-                color: black;
-                background-color: white;
-                transition: ease-out 0.2s;
+                color: rgb(255, 255, 255);
+                background-color: rgb(59, 0, 0);
+                transition: ease-out 0.1s;
             }
 
             /* Media Queries for Responsiveness */
@@ -64,21 +64,30 @@
                     bottom: 8%;
                     /* No specific left/transform change here, so it stays centered */
                 }
+                img {
+                    width: 130%; /* Make it wider */
+                    margin-left: 20rem; /* Move it to the right */
+                }
             }
 
             /* Phones */
             @media only screen and (max-width: 480px) {
                 button {
-                    font-size: 50px;
-                    padding: 6px 55px; /* Slightly increase padding to give more room if needed */
-                    bottom: 30%;
+                    font-size: 30px;
+                    padding: 6px 25px; /* Slightly increase padding to give more room if needed */
+                    bottom: 10%;
                     /* No specific left/transform change here, so it stays centered */
+                }
+                img {
+                    width: 500%; /* Adjust width for smaller phones if needed */
+                    margin-left: 40rem; /* Adjust margin for smaller phones if needed */
                 }
             }
         </style>
     </head>
-    <body>
-        <img src="front.png" alt="Front Image">
+<body>
+    <img src="front.png">
+        <h2>fire fnder</h2>
         <a href="login.html">
         <button>Let's Go!</button>
         </a>

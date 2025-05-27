@@ -630,7 +630,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     // For now, we'll clear and re-add. A more advanced solution would diff the updates.
     clearMarkers();
     processReports(querySnapshot.docs);
-    if (querySnapshot.docs.length > 0) {
+
+    // Play sound only if there are new added reports
+    const addedReports = querySnapshot.docChanges().filter(change => change.type === 'added');
+    if (addedReports.length > 0) {
       const audio = document.getElementById('notificationSound');
       if (audio) {
         audio.play().catch(e => console.warn('Audio play failed:', e));

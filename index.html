@@ -11,33 +11,48 @@
             }
             body {
                 background-color: #000;
-                overflow: hidden;
+                overflow: hidden; /* This is important to prevent scrollbars when image is larger than viewport */
                 display: flex;
-                justify-content: center;
-                align-items: center;
+                justify-content: center; /* Centers content horizontally */
+                align-items: center;     /* Centers content vertically */
+                position: relative; /* Needed for absolute positioning of elements relative to body */
             }
             img {
                 width: 100%;
                 height: 100%;
-                object-fit: cover;
+                object-fit: cover; /* Ensures image covers the area while maintaining aspect ratio */
+                position: absolute; /* Allows other content to float above it */
+                top: 0;
+                left: 0;
+                z-index: 0; /* Place image behind other content */
             }
+            h2 { /* Added styles for h2, which is currently text on top of the image */
+                position: absolute;
+                top: 5%; /* Adjust as needed */
+                color: #fff; /* Example color for the text */
+                font-family: 'National Park', sans-serif; /* Example font */
+                font-size: 3em; /* Example size */
+                z-index: 1; /* Place above image, below button */
+                text-align: center;
+                width: 100%;
+            }
+
             button{
                 font-family: kanit, sans-serif;
-                justify-content: center;
-                align-items: center;
                 padding:10px 50px;
-                border:2px solid;
-               border-radius: 10px;
+                border:2px solid #650303; /* Border color for the button */
+                border-radius: 10px;
+                background:transparent;
                 color:#650303;
                 cursor:pointer;
                 user-select:none;
                 font-size:25px;
                 position: absolute;
                 bottom: 5%;
-                left: 50%; /* Default to centered for better mobile behavior */
-                transform: translateX(-50%); /* Default to centered for better mobile behavior */
-                z-index: 2;
-                white-space: nowrap; /* Prevent "Let's Go!" from breaking onto two lines */
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 2; /* Place button above image and h2 */
+                white-space: nowrap;
                 margin-bottom: 5rem;
             }
             button:hover{
@@ -46,20 +61,70 @@
                 transition: ease-out 0.1s;
             }
 
-        
-            
-          
-            /* Phones */
-            @media only screen and (max-width: 480px) {
+            /* Media Queries for Responsiveness */
+
+            /* Desktop/Laptop */
+            @media only screen and (min-width: 992px) {
                 button {
-                    font-size: 50px;
-                    padding: 6px 35px; /* Slightly increase padding to give more room if needed */
-                    bottom: 10%;
-                    /* No specific left/transform change here, so it stays centered */
+                    left: 70%; /* Move to the right on larger screens */
+                    transform: translateX(-50%);
+                }
+            }
+
+            /* Tablets (adjust as needed for specific tablet behaviors) */
+            @media only screen and (max-width: 768px) {
+                h2 {
+                    font-size: 4em; /* Make h2 bigger for tablets */
+                }
+                button {
+                    font-size: 50px; /* Bigger button for tablets */
+                    padding: 12px 40px;
+                    bottom: 8%;
+                }
+                /* No specific image adjustments here, 'object-fit: cover' should work well */
+            }
+
+            /* Phones (max-width: 480px covers most typical phone screens) */
+            @media only screen and (max-width: 480px) {
+                h2 {
+                    font-size: 3em; /* Adjust h2 size for phones */
+                    top: 10%; /* Adjust h2 position for phones */
+                }
+                button {
+                    font-size: 60px; /* Significantly bigger button for phones */
+                    padding: 15px 50px; /* More padding */
+                    bottom: 12%; /* Adjust button position */
                 }
                 img {
-                    width: 500%; /* Adjust width for smaller phones if needed */
-                    margin-left: 40rem; /* Adjust margin for smaller phones if needed */
+                    /* For phones, object-fit: cover usually does a good job.
+                       If the image needs to be slightly shifted or scaled
+                       due to its content, use transform properties.
+                       Avoid very large widths/margins like 500% as they distort. */
+                    width: 120%; /* Example: slightly zoom in */
+                    height: 100%;
+                    left: 50%; /* Center horizontally */
+                    transform: translateX(-50%); /* Adjust to center based on its new width */
+                    /* If your image has a specific focal point you need to bring into view,
+                       you might need to adjust 'object-position' as well.
+                       Example: object-position: 20% center; */
+                }
+            }
+
+            /* Example for very small phones (e.g., iPhone SE, older Androids) */
+            @media only screen and (max-width: 375px) {
+                h2 {
+                    font-size: 2.5em;
+                    top: 8%;
+                }
+                button {
+                    font-size: 55px; /* Slightly smaller button for very small screens */
+                    padding: 10px 40px;
+                    bottom: 15%;
+                }
+                img {
+                    width: 130%; /* More zoom for very small screens */
+                    left: 50%;
+                    transform: translateX(-50%);
                 }
             }
         </style>

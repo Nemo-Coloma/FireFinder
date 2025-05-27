@@ -11,60 +11,68 @@
             }
             body {
                 background-color: #000;
-                overflow: hidden; /* This is important to prevent scrollbars when image is larger than viewport */
+                overflow: hidden;
                 display: flex;
-                justify-content: center; /* Centers content horizontally */
-                align-items: center;     /* Centers content vertically */
-                position: relative; /* Needed for absolute positioning of elements relative to body */
+                justify-content: center;
+                align-items: center;
             }
             img {
                 width: 100%;
                 height: 100%;
-                object-fit: cover; /* Ensures image covers the area while maintaining aspect ratio */
-                position: absolute; /* Allows other content to float above it */
-            
-            }
+                object-fit:cover;
            
-
+            }
             button{
                 font-family: kanit, sans-serif;
+                justify-content: center;
+                align-items: center;
                 padding:10px 50px;
-                border:2px solid #650303; /* Border color for the button */
-                border-radius: 10px;
-                color:#650303;
+                border:2px solid #fff;
+                background:transparent;
+                color:#fff;
                 cursor:pointer;
                 user-select:none;
                 font-size:25px;
                 position: absolute;
                 bottom: 5%;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 2; /* Place button above image and h2 */
-                white-space: nowrap;
-                margin-bottom: 5rem;
-                margin-left: 20rem;
+                left: 50%; /* Default to centered for better mobile behavior */
+                transform: translateX(-50%); /* Default to centered for better mobile behavior */
+                z-index: 2;
+                white-space: nowrap; /* Prevent "Let's Go!" from breaking onto two lines */
             }
             button:hover{
-                color: rgb(255, 255, 255);
-                background-color: rgb(59, 0, 0);
-                transition: ease-out 0.1s;
+                color: black;
+                background-color: white;
+                transition: ease-out 0.2s;
             }
 
-            /* Example for very small phones (e.g., iPhone SE, older Androids) */
-            @media (max-width: 375px) {
+            /* Media Queries for Responsiveness */
+
+            /* Desktop/Laptop (apply the 70% left only for larger screens) */
+            @media only screen and (min-width: 992px) { /* Adjust this breakpoint as needed for your "laptop" size */
                 button {
-                    font-size: 55px; /* Slightly smaller button for very small screens */
-                    padding: 10px 40px;
-                    bottom: 15%;
-                    margin-right: 10rem;
+                    left: 70%; /* Move to the right on larger screens */
+                    transform: translateX(-50%); /* Still perfectly center horizontally based on its own width */
                 }
-                img {
-                    height: 45rem;
-                    width: 80rem; /* More zoom for very small screens */
-                    margin-left: 20rem;
-                    justify-content: center;
-                    align-items: center;
-                   object-fit: contain;
+            }
+
+            /* Tablets and smaller */
+            @media only screen and (max-width: 768px) {
+                button {
+                    font-size: 50px;
+                    padding: 8px 30px;
+                    bottom: 8%;
+                    /* No specific left/transform change here, so it stays centered */
+                }
+            }
+
+            /* Phones */
+            @media only screen and (max-width: 480px) {
+                button {
+                    font-size: 30px;
+                    padding: 6px 25px; /* Slightly increase padding to give more room if needed */
+                    bottom: 10%;
+                    /* No specific left/transform change here, so it stays centered */
                 }
             }
         </style>

@@ -48,7 +48,7 @@
         #adminReports {
             margin: 20px;
             padding: 10px;
-            border: 2px solid #444;
+            border: 2px solid #222222;
             max-height: 400px;
             overflow-y: auto;
             background-color: #fafafa;
@@ -77,20 +77,35 @@
 
         /* Initial hidden state of sidebar moved to style.css */
         .sidebar {
-            right: -450px; /* Initially off-screen */
+            position: fixed;
+            top: 70px;
+            right: -450px;
+            width: 400px;
+            height: calc(100% - 70px);
+            background: linear-gradient(180deg, #1c1c1c, #0a0b18);
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: right 0.3s ease;
+            z-index: 1000;
         }
+
+        .sidebar.visible {
+            right: 0;
+        }
+
         /* Style for the close button within the sidebar */
         .close-sidebar-btn {
             position: absolute;
             top: 10px;
             left: 20px;
-            font-size: 50px;
+            font-size: 30px;
             cursor: pointer;
-            color: white; /* Make it visible against the dark background */
+            color: white;
             transition: color 0.3s ease;
         }
         .close-sidebar-btn:hover {
-            color: #ffffff; /* Lighter red on hover */
+            color: #ff6b6b;
         }
     </style>
 </head>
@@ -137,7 +152,8 @@
     </div>
 
     <div class="sidebar" id="sidebar">
-        <span class="close-sidebar-btn" id="close-sidebar-btn">&times;</span> <h2 style="text-align: center">WHAT'S THE EMERGENCY?</h2>
+        <span class="close-sidebar-btn" id="close-sidebar-btn">&times;</span> 
+        <h2 style="text-align: center">WHAT'S THE EMERGENCY?</h2>
         <div class="button-group">
             <button class="toggle-button" id="fire-btn">FIRE</button>
             <button class="toggle-button" id="accident-btn">ACCIDENT</button>
@@ -156,24 +172,24 @@
     <script>
         const icon = document.getElementById('icon');
         const sidebar = document.getElementById('sidebar');
-        const closeSidebarBtn = document.getElementById('close-sidebar-btn'); // Get the new close button
-        let sidebarVisible = false; // Sidebar starts hidden
+        const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+        let sidebarVisible = false;
 
         // Toggle sidebar when the icon is clicked
         icon.addEventListener('click', () => {
             sidebarVisible = !sidebarVisible;
             sidebar.classList.toggle('visible', sidebarVisible);
-            sidebar.style.right = sidebarVisible ? '0' : '-700px';
+            sidebar.style.right = sidebarVisible ? '0' : '-450px';
         });
 
         // Hide sidebar when the 'X' button is clicked
         closeSidebarBtn.addEventListener('click', () => {
             sidebarVisible = false;
             sidebar.classList.remove('visible');
-            sidebar.style.right = '-500px';
+            sidebar.style.right = '-450px';
         });
 
-        // Firebase Configuration (remains unchanged)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
             authDomain: "firefinder-d5c0a.firebaseapp.com",
@@ -188,16 +204,68 @@
         const storage = firebase.storage();
         const firestore = firebase.firestore();
 
-        const map = L.map('map').setView([14.8292, 120.2820], 14.5);
+        // Initialize map
+        const map = L.map('map').setView([14.8292, 120.2820], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
         }).addTo(map);
 
-        const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-        L.marker(gordonCollegeLatLng)
-            .addTo(map)
-            .bindPopup('Gordon College')
-            .openPopup();
+        // Define headquarters locations
+        const headquarters = [
+            {
+                name: "Fire Department Barretto",
+                latLng: L.latLng(14.8513552,120.2633902),
+                icon: L.icon({
+                    iconUrl: 'fdp.png',
+                    iconSize: [40, 40],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })
+            },
+            {
+                name: "Fire Station Olongapo",
+                latLng: L.latLng(14.842665, 120.287916),
+                icon: L.icon({
+                    iconUrl: 'fdp.png',
+                    iconSize: [40, 40],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })
+            },
+            {
+                name: "Fire Station SBMA",
+                latLng: L.latLng(14.817973, 120.283419),
+                icon: L.icon({
+                    iconUrl: 'fdp.png',
+                    iconSize: [40, 40],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })
+            }
+        ];
+
+        // Add all headquarters markers to the map
+        headquarters.forEach(hq => {
+            L.marker(hq.latLng, { icon: hq.icon })
+                .addTo(map)
+                .bindPopup(hq.name);
+        });
+
+        // Function to find nearest headquarters
+        function findNearestHeadquarters(lat, lng) {
+            let nearest = null;
+            let minDistance = Infinity;
+            
+            headquarters.forEach(hq => {
+                const distance = map.distance([lat, lng], hq.latLng);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = hq;
+                }
+            });
+            
+            return nearest;
+        }
 
         let selectedLocation = null;
         let marker = null;
@@ -212,7 +280,9 @@
                 .bindPopup('Selected Location')
                 .openPopup();
             updateStatus('', '');
-            addRouting(gordonCollegeLatLng.lat, gordonCollegeLatLng.lng, selectedLocation.lat, selectedLocation.lng);
+            
+            const nearestHQ = findNearestHeadquarters(selectedLocation.lat, selectedLocation.lng);
+            addRouting(nearestHQ.latLng.lat, nearestHQ.latLng.lng, selectedLocation.lat, selectedLocation.lng);
 
             // Make sidebar visible on map click if it's not already
             if (!sidebarVisible) {
@@ -226,13 +296,16 @@
             const startPoint = L.latLng(startLat, startLng);
             const endPoint = L.latLng(endLat, endLng);
             if (routeControl) map.removeControl(routeControl);
+            
+            const nearestHQ = findNearestHeadquarters(endLat, endLng);
+            
             routeControl = L.Routing.control({
                 waypoints: [startPoint, endPoint],
                 routeWhileDragging: true,
                 geocoder: L.Control.Geocoder.nominatim(),
                 createMarker: function (i, waypoint) {
                     return i === 0
-                        ? L.marker(waypoint.latLng).bindPopup('Start: Gordon College')
+                        ? L.marker(waypoint.latLng, { icon: nearestHQ.icon }).bindPopup(`Start: ${nearestHQ.name}`)
                         : L.marker(waypoint.latLng).bindPopup('End: Selected Location');
                 },
                 show: false,
@@ -287,7 +360,6 @@
             });
         }
 
-        // Convert file to Base64 string
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -327,11 +399,10 @@
                     message,
                     latitude: selectedLocation.lat,
                     longitude: selectedLocation.lng,
-                    imageBase64, // store base64 image string in Firestore
+                    imageBase64,
                     timestamp: Date.now()
                 };
 
-                // Save to Firestore only (no storage, no realtime database)
                 await firestore.collection('reports').add(reportData);
 
                 alert("Report submitted successfully!");
@@ -358,7 +429,6 @@
             }
         });
 
-        // ====== ADMIN PANEL CODE TO READ AND SHOW REPORTS ======
         const reportsContainer = document.getElementById('reportsContainer');
 
         function createReportCard(report) {
@@ -393,9 +463,8 @@
             return card;
         }
 
-        // Listen to Firestore reports collection in real-time
         firestore.collection('reports').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
-            reportsContainer.innerHTML = ''; // clear container
+            reportsContainer.innerHTML = '';
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const card = createReportCard(data);

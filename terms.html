@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire Department Locator GPS - Legal</title>
+    <style>
+        /* Global Styles */
+        :root {
+            --primary-color: #ff5f4d;
+            --secondary-color: #fe361f;
+            --accent-color: #f39c12;
+            --text-color: #ffffff;
+            --light-gray: #1a1a1a;
+            --medium-gray: #ddd;
+            --dark-gray: #bcbcbc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light-gray);
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .logo span {
+            color: var(--accent-color);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        /* Legal Content Styles */
+        .legal-container {
+            background-color: rgb(36, 36, 36);
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .legal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .legal-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .last-updated {
+            color: var(--dark-gray);
+            font-style: italic;
+        }
+        
+        .legal-section {
+            margin-bottom: 2rem;
+        }
+        
+        .legal-section h2 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        
+        .legal-section p {
+            margin-bottom: 1rem;
+        }
+        
+        .legal-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Footer Styles */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0 0.75rem;
+            }
+            
+            .legal-container {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+            }
+            
+            nav ul li {
+                margin: 0.5rem;
+            }
+            
+            .legal-section h2 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+         
+        </div>
+    </header>
+    
+    <main class="container">
+        <!-- Terms of Service Page Content -->
+        <div class="legal-container" id="terms">
+            <div class="legal-header">
+                <h1>Terms of Service</h1>
+                <p class="last-updated">Last Updated: May 29, 2023</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>1. Acceptance of Terms</h2>
+                <p>By using the Fire Department Locator GPS ("Service"), you agree to comply with these Terms of Service. If you do not agree, do not use the Service.</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>2. Description of Service</h2>
+                <p>This Service provides GPS-based location assistance to help users find nearby fire departments and emergency services. It is intended for informational purposes only and <strong>does not replace official emergency services (e.g., calling 911)</strong>.</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>3. User Responsibilities</h2>
+                <ul>
+                    <li>Do not misuse the Service for false emergencies.</li>
+                    <li>Ensure data accuracy when submitting location information.</li>
+                    <li>You are responsible for obeying traffic laws while using the Service.</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>4. No Guarantee of Accuracy</h2>
+                <p>Fire department locations and response times may vary. We do not guarantee real-time accuracy.</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>5. Limitation of Liability</h2>
+                <p>The Service is not liable for:</p>
+                <ul>
+                    <li>Delays in emergency response.</li>
+                    <li>Incorrect GPS data.</li>
+                    <li>Damages resulting from reliance on the Service.</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>6. Termination</h2>
+                <p>We may suspend or terminate access for misuse or violations of these terms.</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>7. Changes to Terms</h2>
+                <p>We may update these terms; continued use constitutes acceptance.</p>
+            </div>
+        </div>
+        
+        <!-- Privacy Policy Page Content -->
+        <div class="legal-container" id="privacy" style="margin-top: 3rem;">
+            <div class="legal-header">
+                <h1>Privacy Policy</h1>
+                <p class="last-updated">Last Updated: May 29, 2023</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>1. Information Collected</h2>
+                <ul>
+                    <li><strong>Location Data</strong> (GPS) to provide fire department locations.</li>
+                    <li><strong>Device Information</strong> (IP, browser type) for analytics.</li>
+                    <li><strong>User-Submitted Data</strong> (if applicable).</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>2. How We Use Data</h2>
+                <ul>
+                    <li>To provide and improve the Service.</li>
+                    <li>For emergency response assistance (if shared with authorities).</li>
+                    <li>Anonymous analytics to enhance performance.</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>3. Data Sharing</h2>
+                <ul>
+                    <li><strong>Emergency Services</strong>: Location data may be shared with fire departments if necessary.</li>
+                    <li><strong>Third Parties</strong>: Only for service operation (e.g., hosting providers). No sale of personal data.</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>4. Security</h2>
+                <p>We implement safeguards but cannot guarantee 100% security.</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>5. User Rights</h2>
+                <ul>
+                    <li>Request deletion of personal data (where applicable by law).</li>
+                    <li>Opt out of non-essential data collection.</li>
+                </ul>
+            </div>
+            
+            <div class="legal-section">
+                <h2>6. Children's Privacy</h2>
+                <p>Not intended for users under <strong>13</strong> (or <strong>16</strong> under GDPR).</p>
+            </div>
+            
+            <div class="legal-section">
+                <h2>7. Policy Updates</h2>
+                <p>Changes will be posted here. Continued use implies consent.</p>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="terms.html">Terms of Service</a>
+               
+            </div>
+            <p class="copyright">&copy; 2025 FireFinder. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

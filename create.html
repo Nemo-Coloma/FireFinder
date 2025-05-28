@@ -61,11 +61,11 @@
             display: block;
             position: absolute;
             top: 20px;
-            left: 50px;
+            left: -10rem;
             z-index: 10;
         }
         .material-symbols-outlined:hover {
-            color: rgb(23, 23, 23);
+            color: rgb(0, 0, 0);
             background-color: #ebebeb;
             transition: transform 0.3s ease;
             transform-origin: center;
@@ -237,7 +237,10 @@
             <input type="text" id="first-name" placeholder="First Name" required>
             <input type="text" id="last-name" placeholder="Last Name" required>
             <input type="email" id="create-email" placeholder="Email" required>
-            <input type="tel" id="phone-number" placeholder="Phone Number" required>
+            <input type="tel" id="phone-number" placeholder="09+ Mobile Number" 
+                   pattern="[0-9]{11}" 
+                   title="Please enter exactly 11 digits (numbers only)"
+                   required>
             <input type="password" id="create-password" placeholder="Password" required>
             <input type="password" id="confirm-password" placeholder="Confirm Password" required>
             <button type="submit">Sign In</button>
@@ -245,7 +248,18 @@
     </div>
 
     <script>
-        const createAccountForm = document.getElementById('create-account-form');
+         const createAccountForm = document.getElementById('create-account-form');
+        
+        // Phone number validation
+        document.getElementById('phone-number').addEventListener('input', function(e) {
+            // Remove any non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Limit to 11 digits
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
 
         createAccountForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -257,17 +271,20 @@
             const password = document.getElementById('create-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
 
+            // Validate phone number
+            if (phoneNumber.length !== 11) {
+                alert("Phone number must be exactly 11 digits");
+                return;
+            }
+
             if (password !== confirmPassword) {
                 alert("Passwords do not match!");
                 return;
             }
 
-            // Basic validation (you'd typically do more robust validation and server-side handling)
             if (firstName && lastName && email && phoneNumber && password) {
                 alert('Account created successfully (simulated)!');
-                // In a real application, you would send this data to a server
-                // and then redirect the user or perform other actions.
-                window.location.href = "login.html"; // Redirect back to login after "creation"
+                window.location.href = "login.html";
             } else {
                 alert("Please fill in all fields.");
             }

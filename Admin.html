@@ -325,29 +325,81 @@
   const db = getFirestore(app);
 
   // Initialize map
-  const map = L.map('map').setView([14.832, 120.282], 16);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+  const map = L.map('map').setView([14.832, 120.282], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-  // Icon for general emergency reports
+  // Define icons
   const alertIcon = L.icon({
     iconUrl: 'alert.gif',
-    iconSize: [50, 50], // size of the icon
-    iconAnchor: [16, 32], // point of the icon which will correspond to marker's location
-    popupAnchor: [0, -32] // point from which the popup should open relative to the iconAnchor
-  });
-
-  // Icon specifically for Gordon College (fdp.png)
-  const gordonCollegeIcon = L.icon({
-    iconUrl: 'fdp.png', // Path to your fdp.png image
-    iconSize: [50, 50], // Adjust size if needed
+    iconSize: [50, 50],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
   });
 
-  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-  L.marker(gordonCollegeLatLng, { icon: gordonCollegeIcon }).addTo(map).bindPopup("Gordon College");
+  const gordonCollegeIcon = L.icon({
+    iconUrl: 'fdp.png',
+    iconSize: [40, 40],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  const fireStationIcon = L.icon({
+    iconUrl: 'fdp.png',
+    iconSize: [40, 40],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  const policeStationIcon = L.icon({
+    iconUrl: 'fdp.png',
+    iconSize: [40, 40],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  // Define multiple headquarters locations
+  const headquarters = [
+    {
+      name: "Fire Department Barretto",
+      latLng: L.latLng(14.8513552,120.2633902),
+      icon: gordonCollegeIcon
+    },
+    {
+      name: "Fire Department Olongapo",
+      latLng: L.latLng(14.842665, 120.287916),
+      icon: fireStationIcon
+    },
+    {
+      name: "Fire Department SBMA",
+      latLng: L.latLng(14.817973, 120.283419),
+      icon: policeStationIcon
+    }
+  ];
+
+  // Add all headquarters markers to the map
+  headquarters.forEach(hq => {
+    L.marker(hq.latLng, { icon: hq.icon })
+      .addTo(map)
+      .bindPopup(hq.name);
+  });
+
+  // Function to find nearest headquarters
+  function findNearestHeadquarters(lat, lng) {
+    let nearest = null;
+    let minDistance = Infinity;
+    
+    headquarters.forEach(hq => {
+      const distance = map.distance([lat, lng], hq.latLng);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = hq;
+      }
+    });
+    
+    return nearest;
+  }
 
   const statusEl = document.getElementById('status');
   function updateStatus(msg) {
@@ -366,7 +418,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   const reportsPanel = document.getElementById('reports-panel');
   const mapElement = document.getElementById('map');
 
-
   let routeControl = null;
   let reportMarkers = {};
 
@@ -376,9 +427,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     reportsPanel.style.padding = '10px';
     reportsPanel.style.overflowY = 'auto';
     mapElement.style.width = '70%';
-    setTimeout(() => { // Invalidate map size after panel shows to ensure it re-renders correctly
+    setTimeout(() => {
       map.invalidateSize();
-    }, 300); // Match this timeout to CSS transition duration
+    }, 300);
   }
 
   // Function to hide the reports panel
@@ -387,9 +438,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     reportsPanel.style.padding = '0';
     reportsPanel.style.overflowY = 'hidden';
     mapElement.style.width = '100%';
-    setTimeout(() => { // Invalidate map size after panel hides to ensure it re-renders correctly
+    setTimeout(() => {
       map.invalidateSize();
-    }, 300); // Match this timeout to CSS transition duration
+    }, 300);
   }
 
   function createReportCard(report, id) {
@@ -426,17 +477,14 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       reportCard.appendChild(img);
     }
 
-    // Add progress and accomplished buttons container
     const buttonsContainer = document.createElement('div');
     buttonsContainer.className = 'action-buttons';
 
-    // Create Investigating button
     const investigatingBtn = document.createElement('button');
     investigatingBtn.textContent = 'Investigating';
     investigatingBtn.className = 'action-btn view-btn';
     buttonsContainer.appendChild(investigatingBtn);
 
-    // Create Accomplished button
     const accomplishedBtn = document.createElement('button');
     accomplishedBtn.textContent = 'Accomplished';
     accomplishedBtn.className = 'action-btn resolve-btn';
@@ -444,23 +492,21 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
     reportCard.appendChild(buttonsContainer);
 
-    // Event listener for investigating button to show route
     investigatingBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // prevent triggering report card click
-      // Remove active class from all cards
+      e.stopPropagation();
       document.querySelectorAll('.report-card.active').forEach(card => card.classList.remove('active'));
       reportCard.classList.add('active');
 
-      // Remove existing route if any
       if (routeControl) {
         map.removeControl(routeControl);
         routeControl = null;
       }
 
-      // Add routing from Gordon College to report location
+      const nearestHQ = findNearestHeadquarters(report.latitude, report.longitude);
+      
       routeControl = L.Routing.control({
         waypoints: [
-          gordonCollegeLatLng,
+          nearestHQ.latLng,
           L.latLng(report.latitude, report.longitude)
         ],
         routeWhileDragging: false,
@@ -469,17 +515,14 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         draggableWaypoints: false,
         fitSelectedRoutes: true,
         createMarker: function(i, waypoint) {
-          // Keep Gordon College marker as is
-          if (i === 0) return L.marker(waypoint.latLng, { icon: gordonCollegeIcon });
-          // Use alertIcon for the report location marker
+          if (i === 0) return L.marker(waypoint.latLng, { icon: nearestHQ.icon });
           return L.marker(waypoint.latLng, { icon: alertIcon });
         }
       }).addTo(map);
     });
 
-    // Event listener for accomplished button
     accomplishedBtn.addEventListener('click', async (e) => {
-      e.stopPropagation(); // prevent triggering report card click
+      e.stopPropagation();
       if (!confirm('Mark this report as accomplished?')) return;
       try {
         const reportRef = doc(db, 'reports', id);
@@ -487,8 +530,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           status: 'resolved',
           resolvedAt: new Date().toISOString()
         });
-        // Remove marker from map
-        if (routeControl) { // Clear route if the resolved report was the current route destination
+        if (routeControl) {
           map.removeControl(routeControl);
           routeControl = null;
         }
@@ -496,8 +538,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           map.removeLayer(reportMarkers[id]);
           delete reportMarkers[id];
         }
-        // Remove report card from list
-        reportCard.remove(); // This removes the report card from the DOM
+        reportCard.remove();
         updateStatus('Report marked as accomplished.');
       } catch (error) {
         console.error('Failed to mark accomplished:', error);
@@ -505,21 +546,20 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       }
     });
 
-    // Event listener for report card click to show route
     reportCard.addEventListener('click', () => {
-      // Remove active class from all cards
       document.querySelectorAll('.report-card.active').forEach(card => card.classList.remove('active'));
       reportCard.classList.add('active');
 
-      // Add routing logic when report card is clicked
       if (routeControl) {
         map.removeControl(routeControl);
         routeControl = null;
       }
 
+      const nearestHQ = findNearestHeadquarters(report.latitude, report.longitude);
+      
       routeControl = L.Routing.control({
         waypoints: [
-          gordonCollegeLatLng,
+          nearestHQ.latLng,
           L.latLng(report.latitude, report.longitude)
         ],
         routeWhileDragging: false,
@@ -528,9 +568,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         draggableWaypoints: false,
         fitSelectedRoutes: true,
         createMarker: function(i, waypoint) {
-          // Keep Gordon College marker as is
-          if (i === 0) return L.marker(waypoint.latLng, { icon: gordonCollegeIcon });
-          // Use alertIcon for the report location marker
+          if (i === 0) return L.marker(waypoint.latLng, { icon: nearestHQ.icon });
           return L.marker(waypoint.latLng, { icon: alertIcon });
         }
       }).addTo(map);
@@ -538,8 +576,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
     return reportCard;
   }
-
-  const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
 
   function clearMarkers() {
     Object.values(reportMarkers).forEach(marker => map.removeLayer(marker));
@@ -558,7 +594,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     reports.forEach(doc => {
       const report = doc.data();
       const id = doc.id;
-      // Only process reports that are not resolved
       if (report.status === 'resolved') return;
       if (!isValidReport(report)) {
         console.warn('Invalid report:', id, report);
@@ -567,7 +602,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       const card = createReportCard(report, id);
       reportsList.appendChild(card);
 
-      // Add marker to map
       if (reportMarkers[id]) {
         map.removeLayer(reportMarkers[id]);
       }
@@ -581,27 +615,25 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       marker.bindPopup(popupContent);
       reportMarkers[id] = marker;
 
-      // Add click listener to marker to show the reports panel AND set route
       marker.on('click', () => {
         showReportsPanel();
-        // Optionally, scroll to the corresponding report card
         const targetCard = document.querySelector(`.report-card[data-report-id="${id}"]`);
         if (targetCard) {
           targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          // Also highlight the clicked report card
           document.querySelectorAll('.report-card.active').forEach(card => card.classList.remove('active'));
           targetCard.classList.add('active');
         }
 
-        // Re-add routing logic when map marker is clicked
         if (routeControl) {
           map.removeControl(routeControl);
           routeControl = null;
         }
 
+        const nearestHQ = findNearestHeadquarters(report.latitude, report.longitude);
+        
         routeControl = L.Routing.control({
           waypoints: [
-            gordonCollegeLatLng,
+            nearestHQ.latLng,
             L.latLng(report.latitude, report.longitude)
           ],
           routeWhileDragging: false,
@@ -610,9 +642,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           draggableWaypoints: false,
           fitSelectedRoutes: true,
           createMarker: function(i, waypoint) {
-            // Keep Gordon College marker as is
-            if (i === 0) return L.marker(waypoint.latLng, { icon: gordonCollegeIcon });
-            // Use alertIcon for the report location marker
+            if (i === 0) return L.marker(waypoint.latLng, { icon: nearestHQ.icon });
             return L.marker(waypoint.latLng, { icon: alertIcon });
           }
         }).addTo(map);
@@ -624,14 +654,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     updateStatus(`Showing ${validReportsCount} valid reports`);
   }
 
+  const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
+
   onSnapshot(q, (querySnapshot) => {
-    // Before processing new reports, clear existing markers only if new data replaces them
-    // This part is slightly complex with real-time updates and could lead to flicker
-    // For now, we'll clear and re-add. A more advanced solution would diff the updates.
     clearMarkers();
     processReports(querySnapshot.docs);
 
-    // Play sound only if there are new added reports
     const addedReports = querySnapshot.docChanges().filter(change => change.type === 'added');
     if (addedReports.length > 0) {
       const audio = document.getElementById('notificationSound');
@@ -644,7 +672,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     updateStatus('Error loading reports');
   });
 
-  // Event listener for closing the reports panel
   document.addEventListener('DOMContentLoaded', () => {
     const closeReportsBtn = document.getElementById('closeReportsBtn');
     if (closeReportsBtn) {
@@ -653,18 +680,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       });
     }
 
-    // Dropdown functionality for the icon
     const icon = document.getElementById('icon');
     const dropdownContent = document.getElementById('myDropdown');
     const logoutLink = document.getElementById('logoutLink');
 
     if (icon && dropdownContent) {
       icon.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent click from bubbling to document
+        event.stopPropagation();
         dropdownContent.classList.toggle('show');
       });
 
-      // Close the dropdown if the user clicks outside of it
       window.addEventListener('click', (event) => {
         if (!event.target.matches('#icon') && !event.target.closest('.dropdown-content')) {
           if (dropdownContent.classList.contains('show')) {
@@ -676,43 +701,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
     if (logoutLink) {
       logoutLink.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent default link behavior
-        // In a real application, you'd integrate Firebase Auth signOut here:
-        // firebase.auth().signOut().then(() => {
-        //   console.log('User signed out.');
-        //   window.location.href = 'login.html';
-        // }).catch((error) => {
-        //   console.error('Sign out error', error);
-        // });
-        window.location.href = 'login.html'; // Redirect to login.html
+        event.preventDefault();
+        window.location.href = 'login.html';
       });
     }
-
-    // Optional: Add test report button functionality
-    // This button was commented out in previous versions,
-    // if you want it back, uncomment the HTML for it.
-    // const debugBtn = document.getElementById('debugBtn');
-    // if (debugBtn) {
-    //     debugBtn.addEventListener('click', async () => {
-    //         try {
-    //             const newReport = {
-    //                 emergencyType: 'fire',
-    //                 message: 'Test fire report',
-    //                 latitude: 14.832 + (Math.random() - 0.5) * 0.01,
-    //                 longitude: 120.282 + (Math.random() - 0.5) * 0.01,
-    //                 timestamp: new Date().toISOString(),
-    //                 status: 'active'
-    //             };
-    //             await addDoc(collection(db, 'reports'), newReport);
-    //             updateStatus('Test report added');
-    //         } catch (error) {
-    //             console.error('Failed to add test report:', error);
-    //             alert('Failed to add test report: ' + error.message);
-    //         }
-    //     });
-    // }
   });
-
 </script>
 <audio id="notificationSound" src="ffinder ring.MP3" preload="auto"></audio>
 </body>

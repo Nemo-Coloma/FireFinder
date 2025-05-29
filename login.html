@@ -109,16 +109,24 @@
             font-size: 0.9rem;
             text-align: center;
         }
+         /* Add this to your existing styles */
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin: -20px 0 15px 0;
+            text-align: center;
+            display: none;
+        }
 
         /* ------------------- Media Queries for Responsiveness ------------------- */
 
         /* For screens smaller than 768px (typical tablet portrait and phones) */
         @media (max-width: 768px) {
             body {
-                flex-direction: column; /* Stack elements vertically on smaller screens */
+               flex-direction: column; /* Stack elements vertically on smaller screens */
                 overflow-y: auto; /* Allow scrolling if content overflows on small screens */
                 height: auto; /* Allow body to adjust height based on content */
-                min-height: 100vh; /* Ensure it still takes full viewport height */
+                min-height: 100vh;  /* Ensure it still takes full viewport height */
             }
 
             .form-container {
@@ -126,12 +134,12 @@
                 max-width: 300px; /* Keep a max-width to prevent it from getting too wide on slightly larger phones */
                 margin-left: 0; /* Remove negative margin */
                 padding: 15px; /* Adjust padding */
-                margin-bottom: 130px;
+                margin-bottom: 100px;
             }
 
             h2 {
-                font-size: 2.5rem; /* Slightly smaller heading */
-                margin-bottom: 30px;
+                font-size: 5rem; /* Slightly smaller heading */
+                margin-bottom: 100px;
             }
 
             input {
@@ -191,37 +199,105 @@
         <form id="login-form">
             <h2>Sign In</h2>
             <input type="email" id="login-email" placeholder="Enter your email" required>
-            <input type="password" id="login-password" placeholder="Enter your password" required>
+            <input type="password" id="login-password" placeholder="Enter your password" 
+                   minlength="6" maxlength="12" required>
+            <div id="login-error" class="error-message"></div> <!-- Error message container -->
             <button type="submit">LOGIN</button>
             <div class="link" onclick="window.location.href='create.html'">Create Account</div>
             <p>
                 By signing in you agree to
-                <a href="#">Terms of Service</a> and
-                <a href="#">Privacy Policy</a>.
+                <a href="terms.html">Terms of Service</a> and
+                <a href="terms.html">Privacy Policy</a>.
             </p>
         </form>
     </div>
 
-    <script>
-        const loginForm = document.getElementById('login-form');
+     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
-        loginForm.addEventListener('submit', (e) => {
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+            authDomain: "firefinder-d5c0a.firebaseapp.com",
+            databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
+            projectId: "firefinder-d5c0a",
+            storageBucket: "firefinder-d5c0a.appspot.com",
+            messagingSenderId: "221428549294",
+            appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f",
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        const loginForm = document.getElementById('login-form');
+        const errorElement = document.getElementById('login-error');
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            errorElement.style.display = 'none'; // Hide previous errors
 
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
-            if (email === "adminfdp@gmail.com" && password === "123456") {
-                window.location.href = "Admin.html";
-            } else if (email && password) {
-                // In a real application, you'd send this to a server for authentication.
-                // For this example, any non-admin email/password combination redirects to user.html
-                window.location.href = "user.html";
-            } else {
-                alert("Please enter email and password.");
+            // Client-side password length validation
+            if (password.length < 6 || password.length > 12) {
+                showError("Password must be 6-12 characters long");
+                return;
+            }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    await auth.signOut();
+                    showError("Please verify your email first. Check your inbox.");
+                    return;
+                }
+                
+                // Check if this is the admin account
+                if (email === "adminfdp@gmail.com") {
+                    window.location.href = "Admin.html";
+                } else {
+                    window.location.href = "user.html";
+                }
+            } catch (error) {
+                let errorMessage = "Login failed. Please try again.";
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorMessage = "Invalid email or password.";
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = "Invalid email address.";
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = "Account disabled.";
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = "Too many attempts. Try again later.";
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+                showError(errorMessage);
+            }
+        });
+
+        function showError(message) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // Real-time password length validation
+        document.getElementById('login-password').addEventListener('input', function() {
+            if (this.value.length > 12) {
+                this.value = this.value.slice(0, 12);
             }
         });
     </script>
-
 </body>
 </html>
